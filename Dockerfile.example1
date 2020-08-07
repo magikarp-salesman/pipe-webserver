@@ -1,0 +1,27 @@
+FROM hayd/deno:1.2.2 as build
+
+RUN mkdir -p build build/api
+COPY *.ts build/
+COPY api/*.ts build/api
+RUN cd build && \
+    deno bundle receiver.ts > receiver.js.bundle && \
+    deno bundle emmiter.ts > emmiter.js.bundle && \
+    deno bundle filter.ts > filter.js.bundle
+
+FROM hayd/deno:1.2.2 as runner
+
+WORKDIR /root
+
+COPY --from=build build/receiver.js.bundle receiver.js
+COPY --from=build build/emmiter.js.bundle emmiter.js
+COPY --from=build build/filter.js.bundle filter.js
+
+RUN echo "deno run --allow-net=:8000 /root/receiver.js" > /usr/bin/receiver
+RUN echo "deno run /root/filter.js" > /usr/bin/filter
+RUN echo "deno run --allow-net=localhost:8000 /root/emmiter.js" > /usr/bin/emmiter
+
+RUN chmod u+x /usr/bin/receiver /usr/bin/filter /usr/bin/emmiter
+
+EXPOSE 8000
+ENTRYPOINT [ "/bin/sh" , "-c" ]
+CMD [" receiver | filter | emmiter "]
