@@ -58,7 +58,7 @@ Then to run: ```$ docker run -p 8000:8000 server```
 
 ### Example 2
 
-Receive requests on the default port pass them through a filter ("that marks the request as filtered") and return a response to the user
+Receive requests on the default port pass them through a filter ("that only allow a certain url to pass") and return a response to the user
 
 ```sh
 $ receiver | filter --filterUrl="/helloworld" | hello-world | emitter
@@ -82,7 +82,7 @@ $ receiver | \
 
 ### Example 4
 
-Receive requests on the default port, log the requests, pass them through sed ("that writes hello world in the body"), log the reply and return a response to the user.
+Receive requests on the default port, log the requests, pass them through sed (writing a log message), log the reply and return a response to the user.
 
 ```sh
 $ receiver | \
