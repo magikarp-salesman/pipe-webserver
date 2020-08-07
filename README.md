@@ -92,6 +92,20 @@ $ receiver | \
   emmiter 
 ```
 
+### Example 5
+
+Receive requests on the default port, pass them through the blog program to fetch the static blog file from the docs folder.
+
+```sh
+$ receiver | blog | emmiter 
+```
+
+This example is implemented in the ```Dockerfile.example5``` file.
+
+To build: ```$ docker build -f Dockerfile.example5 -t server .```
+
+Then to run: ```$ docker run -p 8000:8000 server```
+
 ## Features and TODO list
 
 Tasks strikedthrough are already done, others are in the roadmap.
@@ -104,7 +118,7 @@ Tasks strikedthrough are already done, others are in the roadmap.
 * ~~Add docker files with examples of the webservers~~
 * ~~Implement a "Filter" program~~
 * ~~Create an example of a program that filters the given requests and only allow for a given url to reply to the user.~~
-* Implement a "Blog" program ( replies with a given html markdown )
+* ~~Implement a "Blog" program ( replies with a given html file )~~
 * Implement a "Router" program
 * Create the request API 0.2 schema
 * Implement a "Redirect" program
