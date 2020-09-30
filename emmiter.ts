@@ -1,5 +1,5 @@
 import { readLines } from "https://deno.land/std@0.62.0/io/bufio.ts"
-import { api_pipeserver_v0_1 } from "./api/api_v0_1.ts";
+import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import { getCommandLineArgs, sendPipeError, sendPipeDebug } from "./common.ts"
 
 const args = getCommandLineArgs({
@@ -10,7 +10,7 @@ const args = getCommandLineArgs({
 async function main() {
 	for await (const line of readLines(Deno.stdin)) {
 		try {
-			var request:api_pipeserver_v0_1 = JSON.parse(line);
+			var request:api_pipeserver_v0_2 = JSON.parse(line);
 
 			fetch(`http://${args.server}:${args.port}/reply`, {
 			  method: 'POST', // or 'PUT'

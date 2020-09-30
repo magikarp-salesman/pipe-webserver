@@ -3,7 +3,7 @@ import { readLines } from "https://deno.land/std@0.62.0/io/bufio.ts";
 import { getCommandLineArgs, sendPipeMessage, sendPipeError, sendPipeDebug } from "./common.ts"
 
 const args = getCommandLineArgs({
-    reply: `<html><h1>Hello World</h1></html>`
+    reply: `<html><h1>Hello World!</h1></html>`
 });
 
 async function main() {

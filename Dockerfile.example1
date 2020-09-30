@@ -2,7 +2,7 @@ FROM hayd/deno:1.4.0 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
-COPY api/*.ts build/api
+COPY api/*.ts build/api/
 RUN cd build && \
     deno bundle receiver.ts > receiver.js.bundle && \
     deno bundle emmiter.ts > emmiter.js.bundle && \

@@ -1,6 +1,6 @@
 import { serve, ServerRequest } from "https://deno.land/std@0.62.0/http/server.ts"
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
-import { api_pipeserver_v0_1 } from "./api/api_v0_1.ts";
+import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import { getCommandLineArgs, sendPipeMessage, sendPipeError, sendPipeDebug } from "./common.ts"
 
 const args = getCommandLineArgs({
@@ -16,8 +16,8 @@ async function main() {
 	for await (const req of server) {
 		if(!handleReply(req)){
 			sendPipeDebug(`Received request`);
-			let ndjson: api_pipeserver_v0_1 = {
-				version: 0.1,
+			let ndjson: api_pipeserver_v0_2 = {
+				version: 0.2,
 				uuid: v4.generate(),
 				request: {
 					url: req.url,
@@ -31,7 +31,7 @@ async function main() {
 	}
 }
 
-async function readReply(req:ServerRequest): Promise<api_pipeserver_v0_1> {
+async function readReply(req:ServerRequest): Promise<api_pipeserver_v0_2> {
 	const buf = await Deno.readAll(req.body);
 	const body = new TextDecoder("utf-8").decode(buf);
 	return JSON.parse(body);;
@@ -39,11 +39,14 @@ async function readReply(req:ServerRequest): Promise<api_pipeserver_v0_1> {
 
 function handleReply(req:ServerRequest){
 	if(req.url === `/reply` && req.method === `POST`){
-		readReply(req).then((msg: api_pipeserver_v0_1) => {
+		readReply(req).then((msg: api_pipeserver_v0_2) => {
 			sendPipeDebug(`Sending reply...`);
 			const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
 			if(reqObject !== undefined) {
-				reqObject.respond({ body: msg.reply.body!! });
+				reqObject.respond({ 
+					body: msg.reply.body!!,
+					status: msg.reply.returnCode ?? 200  
+				});
 				requests.delete(msg.uuid);
 			} else {
 				req.respond({status:404});
