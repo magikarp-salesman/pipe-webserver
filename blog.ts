@@ -11,6 +11,10 @@ async function main() {
     for await (const line of readLines(Deno.stdin)) {
         try {
             var message:api_pipeserver_v0_2 = JSON.parse(line);
+	    if ( message.reply.returnCode ){
+	    	sendPipeMessage(message)
+		continue;
+	    }
             try {
                 if(message.request.url.startsWith(args.baseUrl)){
                     const path = args.localFolder + message.request.url.substring(args.baseUrl.length);

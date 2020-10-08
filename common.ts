@@ -1,7 +1,7 @@
-import { parse } from "https://deno.land/std/flags/mod.ts";
-import { api_pipeserver } from "./api/api_v0_1.ts";
+import {parse} from "https://deno.land/std/flags/mod.ts";
+import {api_pipeserver} from "./api/api_v0_1.ts";
 
-export function getCommandLineArgs(defaults: object){
+export function getCommandLineArgs(defaults: object) {
 
     return {
         ...defaults,
@@ -10,16 +10,17 @@ export function getCommandLineArgs(defaults: object){
 
 }
 
-export function sendPipeMessage(message: api_pipeserver){
+export function sendPipeMessage(message: api_pipeserver) {
     console.log(JSON.stringify(message));
 }
 
-export async function sendPipeDebug(message: string){
-    const finalMessage:string = `[ps] [debug] ${message}\n`;
+export async function sendPipeDebug(message: string) {
+    const finalMessage: string = `[ps] [debug] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }
 
-export async function sendPipeError(message: string){
-    const finalMessage:string = `[ps] [error] ${message}\n`;
+export async function sendPipeError(message: string, error?: any) {
+    const errorMessage = error ? ` (${error})` : '';
+    const finalMessage: string = `[ps] [error] ${message}${errorMessage}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }

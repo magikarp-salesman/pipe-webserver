@@ -6,10 +6,12 @@ export interface api_pipeserver_v0_2 extends api_pipeserver {
     request: {
         url: string,
         method: string,
+	authorization?: string
     }
 
     reply: {
-        body?: string
-	    returnCode?: number
+        body?: string,
+	headers: any,
+	returnCode?: number
     }
 }

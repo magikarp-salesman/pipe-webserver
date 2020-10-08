@@ -22,8 +22,11 @@ async function main() {
 				request: {
 					url: req.url,
 					method: req.method.toLowerCase(),
+					authorization: req.headers.get("Authorization") ?? undefined
 				},
-				reply: {}
+				reply: {
+					headers: {}
+				}
 			}
 			requests.set(ndjson.uuid,req);
 			sendPipeMessage(ndjson);
@@ -43,10 +46,16 @@ function handleReply(req:ServerRequest){
 			sendPipeDebug(`Sending reply...`);
 			const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
 			if(reqObject !== undefined) {
-				reqObject.respond({ 
+				let newObject = { 
 					body: msg.reply.body!!,
-					status: msg.reply.returnCode ?? 200  
+					status: msg.reply.returnCode ?? 200,
+					headers: new Headers()
+				};
+				Object.entries(msg.reply.headers).forEach((item: [string,unknown]) => {
+					let value = String(item[1]);
+					newObject.headers.append(item[0], value)
 				});
+				reqObject.respond(newObject);
 				requests.delete(msg.uuid);
 			} else {
 				req.respond({status:404});
