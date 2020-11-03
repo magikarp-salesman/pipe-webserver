@@ -3,7 +3,7 @@ import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
-  processPipeMessagesV2,
+  processPipeMessages,
 } from "./common.ts";
 
 const args = getCommandLineArgs({
@@ -34,6 +34,6 @@ const basicAuth = async (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
   return message;
 };
 
-processPipeMessagesV2(basicAuth, "Started basic auth...");
+processPipeMessages<api_pipeserver_v0_2>(basicAuth, "Started basic auth...");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

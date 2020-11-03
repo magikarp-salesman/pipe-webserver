@@ -1,5 +1,5 @@
 import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
-import { getCommandLineArgs, processPipeMessagesV2 } from "./common.ts";
+import { getCommandLineArgs, processPipeMessages } from "./common.ts";
 
 const args = getCommandLineArgs({
   server: `localhost`,
@@ -23,6 +23,9 @@ const emmitMessage = async (message: api_pipeserver_v0_2) => {
     });
 };
 
-processPipeMessagesV2(emmitMessage, "Initialized emitter...");
+processPipeMessages<api_pipeserver_v0_2>(
+  emmitMessage,
+  "Initialized emitter...",
+);
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

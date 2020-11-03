@@ -37,30 +37,14 @@ export async function sendPipeError(message: string, error?: any) {
   await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }
 
-export async function processPipeMessagesV1(
-  handler: (message: api_pipeserver_v0_1, pipe: PipeFunctions) => any,
+export async function processPipeMessages<T>(
+  handler: (message: T, pipe: PipeFunctions) => any,
   startMessage?: string,
 ) {
   if (startMessage) sendPipeDebug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
     try {
-      const message: api_pipeserver_v0_1 = JSON.parse(line);
-      const reply = await handler(message, pipeFunctions);
-      if (reply) sendPipeMessage(reply);
-    } catch (error) {
-      sendPipeError("Could not parse NDJSON", error);
-    }
-  }
-}
-
-export async function processPipeMessagesV2(
-  handler: (message: api_pipeserver_v0_2, pipe: PipeFunctions) => any,
-  startMessage?: string,
-) {
-  if (startMessage) sendPipeDebug(startMessage);
-  for await (const line of readLines(Deno.stdin)) {
-    try {
-      const message: api_pipeserver_v0_2 = JSON.parse(line);
+      const message: T = JSON.parse(line);
       const reply = await handler(message, pipeFunctions);
       if (reply) sendPipeMessage(reply);
     } catch (error) {

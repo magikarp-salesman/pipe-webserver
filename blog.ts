@@ -2,7 +2,7 @@ import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
-  processPipeMessagesV2,
+  processPipeMessages,
 } from "./common.ts";
 
 const args = getCommandLineArgs({
@@ -39,6 +39,6 @@ const blogHandler = async (
   }
 };
 
-processPipeMessagesV2(blogHandler, "Started blog...");
+processPipeMessages<api_pipeserver_v0_2>(blogHandler, "Started blog...");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet
