@@ -1,10 +1,8 @@
 import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
-import { readLines } from "https://deno.land/std@0.62.0/io/bufio.ts";
 import {
   getCommandLineArgs,
-  sendPipeDebug,
-  sendPipeError,
-  sendPipeMessage,
+  PipeFunctions,
+  processPipeMessagesV2,
 } from "./common.ts";
 
 const args = getCommandLineArgs({
@@ -12,42 +10,35 @@ const args = getCommandLineArgs({
   localFolder: "./docs",
 });
 
-async function main() {
-  for await (const line of readLines(Deno.stdin)) {
-    try {
-      var message: api_pipeserver_v0_2 = JSON.parse(line);
-      if (message.reply.returnCode) {
-        sendPipeMessage(message);
-        continue;
-      }
-      try {
-        if (message.request.url.startsWith(args.baseUrl)) {
-          const path = args.localFolder +
-            message.request.url.substring(args.baseUrl.length);
-          sendPipeDebug(`Reading file ${path}`);
-          const text = new TextDecoder("utf-8").decode(
-            await Deno.readFile(path),
-          );
-          message.reply.body = text;
-          sendPipeMessage(message);
-        } else {
-          message.reply.body = "Not found";
-          message.reply.returnCode = 404;
-          sendPipeMessage(message);
-        }
-      } catch (err) {
-        sendPipeError("Could not read file." + err);
-        message.reply.body = "Not found";
-        message.reply.returnCode = 404;
-        sendPipeMessage(message);
-      }
-    } catch (err) {
-      sendPipeError("Could not parse NDJSON" + err);
-    }
-  }
-}
+const blogHandler = async (
+  message: api_pipeserver_v0_2,
+  pipe: PipeFunctions,
+) => {
+  // we already have a return code so just forward the message
+  if (message.reply.returnCode) return message;
 
-sendPipeDebug("Started blog...");
-main();
+  try {
+    if (message.request.url.startsWith(args.baseUrl)) {
+      const path = args.localFolder +
+        message.request.url.substring(args.baseUrl.length);
+      pipe.debug(`Reading file ${path}`);
+      const text = new TextDecoder("utf-8").decode(
+        await Deno.readFile(path),
+      );
+      message.reply.body = text;
+    } else {
+      message.reply.body = "Not found";
+      message.reply.returnCode = 404;
+    }
+    return message;
+  } catch (err) {
+    pipe.error("Could not read file." + err);
+    message.reply.body = "Not found";
+    message.reply.returnCode = 404;
+    return message;
+  }
+};
+
+processPipeMessagesV2(blogHandler, "Started blog...");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet
