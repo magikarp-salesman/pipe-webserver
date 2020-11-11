@@ -1,8 +1,10 @@
 import {
+  Response,
   serve,
   ServerRequest,
-} from "https://deno.land/std@0.62.0/http/server.ts";
+} from "https://deno.land/std@0.77.0/http/server.ts";
 import { v4 } from "https://deno.land/std/uuid/mod.ts";
+import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
   getCommandLineArgs,
@@ -33,6 +35,7 @@ async function main() {
           authorization: req.headers.get("Authorization") ?? undefined,
         },
         reply: {
+          base64: false,
           headers: {},
         },
       };
@@ -54,14 +57,19 @@ function handleReply(req: ServerRequest) {
       sendPipeDebug(`Sending reply...`);
       const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
       if (reqObject !== undefined) {
-        let newObject = {
-          body: msg.reply.body!!,
+        let body: string | Uint8Array = msg.reply.body!!;
+        if (msg.reply.base64 === true) {
+          body = base64.toUint8Array(msg.reply.body!!);
+        }
+
+        let newObject: Response = {
+          body,
           status: msg.reply.returnCode ?? 200,
           headers: new Headers(),
         };
         Object.entries(msg.reply.headers).forEach((item: [string, unknown]) => {
           let value = String(item[1]);
-          newObject.headers.append(item[0], value);
+          newObject.headers!!.append(item[0], value);
         });
         reqObject.respond(newObject);
         requests.delete(msg.uuid);

@@ -36,7 +36,7 @@ Processes can be programmed in any language and can only talk through standard u
 
 Other than this two processes the order of the programs in the pipeline is not in any way enforced and can be changed in any combination possible.
 
-Even though the messages are processed in a synchronized way nothing prevents the processes from treating them asynchronously or even prevent some of them from reaching the end of the pipeline, all requests without reply will be canceled after 5 seconds and return 503 to the client. 
+Even though the messages are processed in a synchronized way nothing prevents the processes from treating them asynchronously or even prevent some of them from reaching the end of the pipeline, all requests without reply will be canceled after 5 seconds and return 408 to the client. 
 
 The applications print to the standard error output other messages for debugging purposes.
 
@@ -70,7 +70,7 @@ To build: ```$ docker build -f Dockerfile.example2 -t server .```
 
 Then to run: ```$ docker run -p 8000:8000 server```
 
-### Example 3
+### Example 2.1
 
 Receive requests on the default port pass them through sed ("that writes hello world in the body") and return a response to the user.
 
@@ -79,6 +79,20 @@ $ receiver | \
   sed 's/}$/body:"<h1>Hello world</h1>"}/g' | \
   emmiter 
 ```
+
+### Example 3
+
+Receive requests on the default port, reply with the favicon if requested, and reply with helloworld all the other requests.
+
+```sh
+$ receiver | favicon | hello-world | emmiter 
+```
+
+This example is implemented in the ```Dockerfile.example3``` file.
+
+To build: ```$ docker build -f Dockerfile.example3 -t server .```
+
+Then to run: ```$ docker run -p 8000:8000 server```
 
 ### Example 4
 
@@ -116,11 +130,29 @@ $ receiver | basic-auth | blog | emmiter
 
 This example is implemented in the ```Dockerfile.example6``` file.
 
-To build: ```$ docker build -f Dockerfile.example5 -t server .```
+To build: ```$ docker build -f Dockerfile.example6 -t server .```
 
 Then to run: ```$ docker run -p 8000:8000 server```
 
 Credentials: ```tim:scott```
+
+## Independent processes
+
+Since we are using Deno as our main driver for this project it is possible to bundle the scripts and pack the execution into individual executables that will be run separately.
+
+For that we can use the 'warp-packer' project and now we will have different executables that we can mix and match to do the multiple webserver configurations.
+
+To build: ```$ docker build -f Dockerfile.packer,nacosx64 -t packer .```
+
+And then to get the executables: 
+```
+$ INSTANCE=$(docker create packer)
+$ docker cp $INSTANCE:/root/receiver.bin receiver
+$ chmod +x receiver
+$ 
+$ docker stop $INSTANCE
+
+```
 
 ## Features and TODO list
 
@@ -137,6 +169,8 @@ Tasks strikedthrough are already done, others are in the roadmap.
 * ~~Implement a "Blog" program ( replies with a given html file )~~
 * ~~Create the request API 0.2 schema~~
 * ~~Implement a HTTP basic authentication program~~
+* ~~Implement a static favicon program as an example~~
+* ~~Added a packer docker build that will create independent executables~~
 * Implement a "Router" program
 * Implement a "Redirect" program
 

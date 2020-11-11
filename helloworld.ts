@@ -8,7 +8,9 @@ const args = getCommandLineArgs({
 const helloWorld = async (
   message: api_pipeserver_v0_1,
 ) => {
-  message.reply.body = args.reply;
+  if (!message.reply.body) {
+    message.reply.body = args.reply;
+  }
   return message;
 };
 

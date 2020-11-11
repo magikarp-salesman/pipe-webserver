@@ -1,7 +1,6 @@
 import { parse } from "https://deno.land/std/flags/mod.ts";
-import { api_pipeserver, api_pipeserver_v0_1 } from "./api/api_v0_1.ts";
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
-import { readLines } from "https://deno.land/std@0.62.0/io/bufio.ts";
+import { api_pipeserver } from "./api/api_v0_1.ts";
+import { readLines } from "https://deno.land/std@0.77.0/io/bufio.ts";
 
 export type PipeFunctions = {
   message: (message: api_pipeserver) => void;

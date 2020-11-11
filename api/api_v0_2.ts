@@ -11,6 +11,7 @@ export interface api_pipeserver_v0_2 extends api_pipeserver {
 
   reply: {
     body?: string;
+    base64: boolean;
     headers: any;
     returnCode?: number;
   };

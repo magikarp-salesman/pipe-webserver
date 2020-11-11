@@ -6,8 +6,8 @@ COPY api/*.ts build/api/
 RUN cd build && \
     deno bundle receiver.ts > receiver.js.bundle && \
     deno bundle emmiter.ts > emmiter.js.bundle && \
-    deno bundle basic-auth.ts > basic-auth.js.bundle && \
-    deno bundle blog.ts > blog.js.bundle
+    deno bundle favicon.ts > favicon.js.bundle && \
+    deno bundle helloworld.ts > helloworld.js.bundle
 
 FROM hayd/deno:1.5.2 as runner
 
@@ -15,20 +15,16 @@ WORKDIR /root
 
 COPY --from=build build/receiver.js.bundle receiver.js
 COPY --from=build build/emmiter.js.bundle emmiter.js
-COPY --from=build build/blog.js.bundle blog.js
-COPY --from=build build/basic-auth.js.bundle basic-auth.js
-
-RUN mkdir -p /root/docs
-COPY docs/* /root/docs/
+COPY --from=build build/favicon.js.bundle favicon.js
+COPY --from=build build/helloworld.js.bundle hello-world.js
 
 RUN echo "deno run --allow-net=:8000 /root/receiver.js" > /usr/bin/receiver
-RUN echo "deno run /root/basic-auth.js --accepted='tim:scott' --realm='the outerlimits blog'" > /usr/bin/basic-auth
-RUN echo "deno run --allow-read=\"/root/docs\" /root/blog.js" > /usr/bin/blog
+RUN echo "deno run /root/favicon.js" > /usr/bin/favicon
+RUN echo "deno run /root/hello-world.js" > /usr/bin/hello-world
 RUN echo "deno run --allow-net=localhost:8000 /root/emmiter.js" > /usr/bin/emmiter
 
-RUN chmod u+x /usr/bin/receiver /usr/bin/basic-auth /usr/bin/emmiter /usr/bin/blog
+RUN chmod u+x /usr/bin/receiver /usr/bin/favicon /usr/bin/emmiter /usr/bin/hello-world
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/sh" , "-c" ]
-CMD [" receiver | basic-auth | blog | emmiter "]
-
+CMD [" receiver | favicon | hello-world | emmiter "]
