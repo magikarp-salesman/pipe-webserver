@@ -18,14 +18,17 @@ As summarized by Peter H. Salus in A Quarter-Century of Unix (1994):
 
 ## API
 
-The processes share requests one line at a time so that the request object is an [NDJSON](http://ndjson.org/) document following a JSON schema, see version 1 for details.
+The processes share requests one line at a time so that the request object is an [NDJSON](http://ndjson.org/) document following a JSON schema, see [version 1](./api/api_v0_1.ts) for details.
 
 The API is also versioned from the start allowing you to mix and match components with different versions without breaking functionality in between them.
-Programs
 
-The programs can be any Linux executable that works with text and talks through the standard *STDIN/STDOUT/STDERR* interfaces, some basic programs are already included for you to start a simple HTTP 1.0 web-server implementation. ( Check the docker examples )
+## Programs
 
-The initial programs are written for [Deno](https://github.com/denoland/deno) since the Deno internal sandbox disallows access to the external resources by default, this is great for security reasons and lets you control security per process by only allowing the receiver and emitter programs to connect to the internet.
+The programs can be any Linux executable that works with text and talks through the standard *STDIN/STDOUT/STDERR* interfaces,
+some basic programs are already included for you to start a simple HTTP 1.0 web-server implementation. ( Check the docker examples )
+
+The initial programs are written for [Deno](https://github.com/denoland/deno) since the Deno internal sandbox disallows access to the external resources by default,
+this is great for security reasons and lets you control security per process by only allowing the receiver and emitter programs to connect to the internet.
 
 ## Architecture
 
