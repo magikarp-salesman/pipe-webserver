@@ -1,90 +1,67 @@
+import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
   Response,
   serve,
+  Server,
   ServerRequest,
 } from "https://deno.land/std@0.77.0/http/server.ts";
-import { v4 } from "https://deno.land/std/uuid/mod.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
   getCommandLineArgs,
-  sendPipeDebug,
-  sendPipeError,
-  sendPipeMessage,
+  PipeFunctions,
+  receiverProcessor,
 } from "./common.ts";
 
 const args = getCommandLineArgs({
   port: 8000,
 });
 
-const server = serve({ port: args.port });
-const requests: Map<string, ServerRequest> = new Map();
+const server: Server = serve({ port: args.port });
 
-sendPipeDebug(`Starting receiver on port: ${args.port}`);
+function handlerNewMessages(message: api_pipeserver_v0_2, pipe: PipeFunctions) {
+  pipe.message(message);
+}
 
-async function main() {
-  for await (const req of server) {
-    if (!handleReply(req)) {
-      sendPipeDebug(`Received request`);
-      let ndjson: api_pipeserver_v0_2 = {
-        version: 0.2,
-        uuid: v4.generate(),
-        request: {
-          url: req.url,
-          method: req.method.toLowerCase(),
-          authorization: req.headers.get("Authorization") ?? undefined,
-        },
-        reply: {
-          base64: false,
-          headers: {},
-        },
-      };
-      requests.set(ndjson.uuid, req);
-      sendPipeMessage(ndjson);
-    }
+function handlerReplies(
+  message: api_pipeserver_v0_2,
+  req: ServerRequest,
+  pipe: PipeFunctions,
+) {
+  let body: string | Uint8Array = message.reply.body!!;
+  if (message.reply.base64 === true) {
+    pipe.debug("Converting base64 file...");
+    body = base64.toUint8Array(message.reply.body!!);
   }
+
+  let newObject: Response = {
+    body,
+    status: message.reply.returnCode ?? 200,
+    headers: new Headers(),
+  };
+  Object.entries(message.reply.headers).forEach((item: [string, unknown]) => {
+    let value = String(item[1]);
+    newObject.headers!!.append(item[0], value);
+  });
+  req.respond(newObject);
 }
 
-async function readReply(req: ServerRequest): Promise<api_pipeserver_v0_2> {
-  const buf = await Deno.readAll(req.body);
-  const body = new TextDecoder("utf-8").decode(buf);
-  return JSON.parse(body);
+function handlerTimeoutMessages(
+  message: api_pipeserver_v0_2,
+  req: ServerRequest,
+  pipe: PipeFunctions,
+) {
+  let response: Response = {
+    status: 408,
+  };
+  req.respond(response);
 }
 
-function handleReply(req: ServerRequest) {
-  if (req.url === `/reply` && req.method === `POST`) {
-    readReply(req).then((msg: api_pipeserver_v0_2) => {
-      sendPipeDebug(`Sending reply...`);
-      const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
-      if (reqObject !== undefined) {
-        let body: string | Uint8Array = msg.reply.body!!;
-        if (msg.reply.base64 === true) {
-          body = base64.toUint8Array(msg.reply.body!!);
-        }
-
-        let newObject: Response = {
-          body,
-          status: msg.reply.returnCode ?? 200,
-          headers: new Headers(),
-        };
-        Object.entries(msg.reply.headers).forEach((item: [string, unknown]) => {
-          let value = String(item[1]);
-          newObject.headers!!.append(item[0], value);
-        });
-        reqObject.respond(newObject);
-        requests.delete(msg.uuid);
-      } else {
-        req.respond({ status: 404 });
-      }
-      return true;
-    }).catch((err) => {
-      sendPipeError(`Error sending reply... ${err}`);
-    });
-    return true;
-  }
-  return false;
-}
-
-main();
+receiverProcessor(
+  handlerNewMessages,
+  handlerReplies,
+  handlerTimeoutMessages,
+  server,
+  `Starting receiver on port: ${args.port}`,
+);
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet
