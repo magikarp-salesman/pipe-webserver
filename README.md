@@ -1,42 +1,41 @@
 # pipe-webserver
 
-A web-server written in Deno using unix pipelines.
+A web server in [Deno](https://github.com/denoland/deno) using UNIX pipelines.
 
 ## Summary
 
-One of the most interesting things about UNIX is the ways of working that arised from the unix phylosophy, for instance the principle that a program should do one thing and only one thing well, but in the age of internet, we saw ever more complicated webservers arise.
+One of the most amazing things that I love about UNIX is the ways of work that arose from the UNIX philosophy but, in the age of the internet, we saw ever more complicated web servers emerge.
 
-Be it apache,nginx iis or tomcat the truth is they do a lot more than serving webpages. they parse, zip, process, add headers, check security, route requests, adapt templates, do ssl and even manage other sub processes through the way of workers and process management using fast-cgi or other APIs.
+Be it Apache, NGINX, IIS, or Tomcat truth is they do a lot more than serving webpages!
+They parse, zip, process, add headers, check security, route requests, adapt templates, do TLS, provide dashboards, manage other sub-processes through the way of workers and also do some process management using Fast-CGI or other APIs.
 
-This is a project that tries to follow the principles and create a webserver that is based on nothing more than open standards and the pure unix phylosophy.
+This project tries to follow the UNIX principles and create a web server based on nothing more than open standards and the pure UNIX philosophy while focusing on per process security and making developing web servers/applications a lot simpler and open.
 
 As summarized by Peter H. Salus in A Quarter-Century of Unix (1994):
-
-* Write programs that do one thing and do it well.
-* Write programs to work together.
-* Write programs to handle text streams, because that is a universal interface.
-
-Each process should do 1 thing and 1 thing well, the API between the processes will be open and versioned from the start, making sure that mixing and matching components will not break functionality, this makes developing programs a lot simpler.
+- "Write programs that do one thing and do it well."
+- "Write programs to work together."
+- "Write programs to handle text streams, because that is a universal interface."
 
 ## API
 
-The processes share requests one line at the time, the request is a [NDJSON](http://ndjson.org/) document following a json schema, see the version 1 for details.
+The processes share requests one line at a time so that the request object is an [NDJSON](http://ndjson.org/) document following a JSON schema, see version 1 for details.
 
-## Programs
+The API is also versioned from the start allowing you to mix and match components with different versions without breaking functionality in between them.
+Programs
 
-The programs can be any linux executable which works with text, some basic programs are provided to give a basic http1.0 webserver implementation from the start.
+The programs can be any Linux executable that works with text and talks through the standard *STDIN/STDOUT/STDERR* interfaces, some basic programs are already included for you to start a simple HTTP 1.0 web-server implementation. ( Check the docker examples )
 
-The initial programs are written for [Deno](https://github.com/denoland/deno) since the deno sandbox disallows access to the external resources by default which is great for security reasons, this lets you control security per process and only allow the ```receiver``` and ```emmiter``` programs to connect to the internet.
+The initial programs are written for [Deno](https://github.com/denoland/deno) since the Deno internal sandbox disallows access to the external resources by default, this is great for security reasons and lets you control security per process by only allowing the receiver and emitter programs to connect to the internet.
 
-## Arquitecture
+## Architecture
 
 ![dot diagram](./docs/example.png)
 
-Processes can be programmed in any language and can only talk through standard unix pipelines and should start with a receiver program (which translates the http request to the document) and end with and emitter (responsible to send the ending request back to the client)
+Processes can be programmed in any language and can only talk through standard UNIX pipelines and should start with a receiver program (which translates the HTTP request to the internal representation) and end with the emitter (responsible for sending the request back to the client).
 
-Other than this two processes the order of the programs in the pipeline is not in any way enforced and can be changed in any combination possible.
+Besides these two processes, the order of the programs in the pipeline is not in any way enforced and can change in any combination possible.
 
-Even though the messages are processed in a synchronized way nothing prevents the processes from treating them asynchronously or even prevent some of them from reaching the end of the pipeline, all requests without reply will be canceled after 5 seconds and return 408 to the client. 
+Even though the messages are processed in a synchronized way nothing prevents the processes from treating them asynchronously or even prevents some of them from reaching the end of the pipeline, all requests without a reply will be canceled after 5 seconds and return 408 (Request Timedout) to the client.
 
 The applications print to the standard error output other messages for debugging purposes.
 
