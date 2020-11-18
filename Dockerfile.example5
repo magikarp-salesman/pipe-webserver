@@ -19,11 +19,9 @@ COPY --from=build build/blog.js.bundle blog.js
 RUN mkdir -p /root/docs
 COPY docs/* /root/docs/
 
-RUN echo "deno run --allow-net=:8000 /root/receiver.js" > /usr/bin/receiver
-RUN echo "deno run  --allow-read=\"/root/docs\" /root/blog.js " > /usr/bin/blog
-RUN echo "deno run --allow-net=localhost:8000 /root/emmiter.js" > /usr/bin/emmiter
-
-RUN chmod u+x /usr/bin/receiver /usr/bin/emmiter /usr/bin/blog
+RUN deno install --allow-net=:8000 /root/receiver.js
+RUN deno install --allow-read=\"/root/docs\"
+RUN deno install --allow-net=localhost:8000 /root/emmiter.js
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/sh" , "-c" ]

@@ -18,12 +18,10 @@ COPY --from=build build/emmiter.js.bundle emmiter.js
 COPY --from=build build/filter.js.bundle filter.js
 COPY --from=build build/helloworld.js.bundle hello-world.js
 
-RUN echo "deno run --allow-net=:8000 /root/receiver.js" > /usr/bin/receiver
-RUN echo "deno run /root/filter.js --filterUrl=\"/helloworld\"" > /usr/bin/filter
-RUN echo "deno run /root/hello-world.js" > /usr/bin/hello-world
-RUN echo "deno run --allow-net=localhost:8000 /root/emmiter.js" > /usr/bin/emmiter
-
-RUN chmod u+x /usr/bin/receiver /usr/bin/filter /usr/bin/emmiter /usr/bin/hello-world
+RUN deno install --allow-net=:8000 /root/receiver.js
+RUN deno install /root/filter.js --filterUrl=\"/helloworld\"
+RUN deno install /root/hello-world.js
+RUN deno install --allow-net=localhost:8000 /root/emmiter.js
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/sh" , "-c" ]

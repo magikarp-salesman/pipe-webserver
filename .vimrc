@@ -4,6 +4,7 @@ set syntax=on
 set modeline
 set relativenumber
 set backspace=indent,eol,start
+set noswapfile
 set nowrap
 
 call plug#begin('./.vim/plugged')

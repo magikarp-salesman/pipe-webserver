@@ -32,13 +32,13 @@ export function sendPipeMessage(message: api_pipeserver) {
 }
 
 export async function sendPipeDebug(message: string) {
-  const finalMessage: string = `[ps] [debug] ${message}\n`;
+  const finalMessage: string = `ℹ️  [debug] ${message}\n`;
   await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }
 
 export async function sendPipeError(message: string, error?: any) {
   const errorMessage = error ? ` (${error})` : "";
-  const finalMessage: string = `[ps] [error] ${message}${errorMessage}\n`;
+  const finalMessage: string = `ℹ️  [error] ${message}${errorMessage}\n`;
   await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }
 
