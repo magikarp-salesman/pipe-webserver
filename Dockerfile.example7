@@ -6,7 +6,7 @@ COPY api/*.ts build/api/
 RUN cd build && \
     deno bundle receiver.ts > receiver.js.bundle && \
     deno bundle emmiter.ts > emmiter.js.bundle && \
-    deno bundle vim-editor.ts > vim-editor.js.bundle && \
+    deno bundle --unstable vim-editor.ts > vim-editor.js.bundle && \
     deno bundle blog.ts > blog.js.bundle
 
 FROM hayd/deno:1.8.3 as runner

@@ -1,4 +1,5 @@
 import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
+import { ensureDirSync } from "https://deno.land/std@0.97.0/fs/mod.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
@@ -14,7 +15,6 @@ import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
   implement a index that includes all the files automatically by alphabetical order
 
   add graphviz support
-  fix images support
 
 */
 
@@ -33,7 +33,7 @@ const vimEditorHandler = async (
   // don't handle any message that is not requesting a .md file starting on the baseURL
   if (
     !message.request.url.startsWith(args.baseUrl) ||
-    !message.request.url.endsWith(".md")
+    !(message.request.url.endsWith(".md") || message.request.url.endsWith("/"))
   ) {
     return message; // forward the message
   }
@@ -88,7 +88,7 @@ const htmlTemplate = (markdown: string) =>
     </script>
     <pre id="markdown-source" style="display:none">${markdown}</pre>
 </head>
-<body>
+<body class="markdown-body">
 </body>
 </html>
 `;
@@ -100,16 +100,37 @@ async function handleShowFile(
   try {
     const path = args.localFolder +
       message.request.url.substring(args.baseUrl.length);
-    pipe.info(`Reading raw file ${path}`);
-    const fileData = new TextDecoder("utf-8").decode(
-      await Deno.readFile(path),
-    );
-    const isEncryptedFile = fileData.startsWith("VimCrypt");
-    message.reply.body = htmlTemplate(
-      isEncryptedFile
-        ? "__Encrypted file__\n````\n" + fileData + "\n````"
-        : fileData,
-    );
+    const stat = await Deno.lstat(path);
+
+    if (stat.isDirectory) {
+      // create file listing
+      let toc = [];
+      let includes = [];
+      for await (const dirEntry of Deno.readDir(path)) {
+        let icon = dirEntry.isFile ? ":clipboard:" : ":file_folder:";
+        let link = dirEntry.isFile
+          ? `./${dirEntry.name}`
+          : `./${dirEntry.name}/`;
+        toc.push(` - ${icon} [${dirEntry.name}](${link})`);
+        includes.push(`{!${link}!}`);
+      }
+
+      message.reply.body = htmlTemplate(
+        toc.join("\n") + "\n\n" + includes.join("\n"),
+      );
+    } else {
+      pipe.info(`Reading raw file ${path}`);
+      const fileData = new TextDecoder("utf-8").decode(
+        await Deno.readFile(path),
+      );
+      const isEncryptedFile = fileData.startsWith("VimCrypt");
+      message.reply.body = htmlTemplate(
+        isEncryptedFile
+          ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
+            "\n````"
+          : fileData,
+      );
+    }
     message.reply.returnCode = 200;
     return message;
   } catch (err) {
@@ -135,6 +156,7 @@ async function handleShowRawFile(
     return message;
   } catch (err) {
     pipe.info("Could not read file. (creating a new file)");
+
     message.reply.body = "This is a new file";
     message.reply.returnCode = 200;
     return message;
@@ -151,6 +173,9 @@ async function handleUpdateFile(
     const fileData = base64.toUint8Array(message.request.payload!!);
     if (fileData.length > 0) {
       pipe.info(`Updating file ${path}`);
+      const directory = path.substring(0, path.lastIndexOf("/"));
+      pipe.info(`File directory: '${directory}'`);
+      ensureDirSync(directory);
       Deno.writeFileSync(path, fileData, { mode: 0o0777 });
     } else {
       // deleting file
