@@ -1,4 +1,4 @@
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
+import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
   Response,
   serve,
@@ -18,12 +18,12 @@ const args = getCommandLineArgs({
 
 const server: Server = serve({ port: args.port });
 
-function handlerNewMessages(message: api_pipeserver_v0_2, pipe: PipeFunctions) {
+function handlerNewMessages(message: api_pipeserver_v0_3, pipe: PipeFunctions) {
   pipe.message(message);
 }
 
 function handlerReplies(
-  message: api_pipeserver_v0_2,
+  message: api_pipeserver_v0_3,
   req: ServerRequest,
   pipe: PipeFunctions,
 ) {
@@ -46,7 +46,7 @@ function handlerReplies(
 }
 
 function handlerTimeoutMessages(
-  message: api_pipeserver_v0_2,
+  message: api_pipeserver_v0_3,
   req: ServerRequest,
   pipe: PipeFunctions,
 ) {

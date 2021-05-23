@@ -1,4 +1,4 @@
-FROM hayd/deno:1.5.2 as build
+FROM hayd/deno:1.8.3 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
@@ -9,7 +9,7 @@ RUN cd build && \
     deno bundle basic-auth.ts > basic-auth.js.bundle && \
     deno bundle blog.ts > blog.js.bundle
 
-FROM hayd/deno:1.5.2 as runner
+FROM hayd/deno:1.8.3 as runner
 
 WORKDIR /root
 
@@ -23,7 +23,7 @@ COPY docs/* /root/docs/
 
 RUN deno install --allow-net=:8000 /root/receiver.js
 RUN deno install /root/basic-auth.js --accepted='tim:scott' --realm='the outerlimits blog' 
-RUN deno install --allow-read=\"/root/docs\" /root/blog.js
+RUN deno install --allow-read='/root/docs' /root/blog.js
 RUN deno install --allow-net=localhost:8000 /root/emmiter.js
 
 EXPOSE 8000

@@ -53,11 +53,11 @@ Receive requests on the default port pass them through a filter ("that marks the
 $ receiver | filter | emitter
 ```
 
-This example is implemented in the ```Dockerfile.example1``` file.
+This example is implemented in the ````Dockerfile.example1```` file.
 
-To build: ```$ docker build -f Dockerfile.example1 -t server .```
+To build: ````$ docker build -f Dockerfile.example1 -t server .````
 
-Then to run: ```$ docker run -p 8000:8000 server```
+Then to run: ````$ docker run -p 8000:8000 server```` 
 
 ### Example 2
 
@@ -67,11 +67,11 @@ Receive requests on the default port pass them through a filter ("that only allo
 $ receiver | filter --filterUrl="/helloworld" | hello-world | emitter
 ```
 
-This example is implemented in the ```Dockerfile.example2``` file.
+This example is implemented in the ````Dockerfile.example2```` file.
 
-To build: ```$ docker build -f Dockerfile.example2 -t server .```
+To build: ````$ docker build -f Dockerfile.example2 -t server .````
 
-Then to run: ```$ docker run -p 8000:8000 server```
+Then to run: ````$ docker run -p 8000:8000 server````
 
 ### Example 2.1
 
@@ -91,11 +91,11 @@ Receive requests on the default port, reply with the favicon if requested, and r
 $ receiver | favicon | hello-world | emmiter 
 ```
 
-This example is implemented in the ```Dockerfile.example3``` file.
+This example is implemented in the ````Dockerfile.example3```` file.
 
-To build: ```$ docker build -f Dockerfile.example3 -t server .```
+To build: ````$ docker build -f Dockerfile.example3 -t server .````
 
-Then to run: ```$ docker run -p 8000:8000 server```
+Then to run: ````$ docker run -p 8000:8000 server````
 
 ### Example 4
 

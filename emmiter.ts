@@ -1,4 +1,4 @@
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
+import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import { getCommandLineArgs, processPipeMessages } from "./common.ts";
 
 const args = getCommandLineArgs({
@@ -6,7 +6,7 @@ const args = getCommandLineArgs({
   port: 8000,
 });
 
-const emmitMessage = async (message: api_pipeserver_v0_2) => {
+const emmitMessage = async (message: api_pipeserver_v0_3) => {
   fetch(`http://${args.server}:${args.port}/reply`, {
     method: "POST", // or 'PUT'
     headers: {
@@ -23,7 +23,7 @@ const emmitMessage = async (message: api_pipeserver_v0_2) => {
     });
 };
 
-processPipeMessages<api_pipeserver_v0_2>(
+processPipeMessages<api_pipeserver_v0_3>(
   emmitMessage,
   "Initialized emitter...",
 );

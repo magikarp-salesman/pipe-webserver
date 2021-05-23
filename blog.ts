@@ -4,6 +4,7 @@ import {
   PipeFunctions,
   processPipeMessages,
 } from "./common.ts";
+import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
@@ -21,11 +22,17 @@ const blogHandler = async (
     if (message.request.url.startsWith(args.baseUrl)) {
       const path = args.localFolder +
         message.request.url.substring(args.baseUrl.length);
+
+      const isHtml = message.request.url.toLowerCase().endsWith("html");
       pipe.debug(`Reading file ${path}`);
-      const text = new TextDecoder("utf-8").decode(
-        await Deno.readFile(path),
-      );
-      message.reply.body = text;
+
+      const fileData = await Deno.readFile(path);
+      if (isHtml) {
+        message.reply.body = new TextDecoder("utf-8").decode(fileData);
+      } else {
+        message.reply.body = base64.fromUint8Array(fileData);
+        message.reply.base64 = true;
+      }
     } else {
       message.reply.body = "Not found";
       message.reply.returnCode = 404;

@@ -1,4 +1,4 @@
-FROM hayd/deno:1.5.2 as build
+FROM hayd/deno:1.8.3 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
@@ -9,7 +9,7 @@ RUN cd build && \
     deno bundle filter.ts > filter.js.bundle && \
     deno bundle helloworld.ts > helloworld.js.bundle
 
-FROM hayd/deno:1.5.2 as runner
+FROM hayd/deno:1.8.3 as runner
 
 WORKDIR /root
 
