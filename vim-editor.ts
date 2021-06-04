@@ -7,21 +7,22 @@ import {
 } from "./common.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 
-/*
-
-  TODO: implement {!include.md!} tags
-  for each tag, find the file, read it with deno and include it on the final response
-
-  implement a index that includes all the files automatically by alphabetical order
-
-  add graphviz support
-
-*/
-
 const args = getCommandLineArgs({
   baseUrl: "/docs",
   localFolder: "./docs",
 });
+
+/*
+  TODO:
+  - Need a way to upload files/images easily (drop unto page for upload?)
+  - Need a way to backup youtube videos and images .. a separate pipeline?
+  - Need a way to download files instead of including them
+  - Download as zip
+  - File list hidden or at the end
+  - Edit other files near them from inside vim
+  - Go/update into zips
+  - A way of searching for something in all the files (tags?)
+*/
 
 const vimEditorHandler = async (
   message: api_pipeserver_v0_3,
@@ -50,48 +51,14 @@ const vimEditorHandler = async (
 
   if (message.request.userAgent == "curl" && message.request.method === "put") {
     // this is a update request from vim
-    return await handleUpdateFile(message, pipe);
+    return handleUpdateFile(message, pipe);
   }
 
   // unknown case, show an error
   pipe.error(`Could not handle request: ${message.request.url}`);
+
   return message; // forward message
 };
-
-const htmlTemplate = (markdown: string) =>
-  `
-<!DOCTYPE html>
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
-    <script type="text/javascript">
-      window.onload = function (){
-
-        // options
-        showdown.setFlavor('github');
-        showdown.setOption('simplifiedAutoLink', true);
-        showdown.setOption('strikethrough', true);
-        showdown.setOption('tables', true);
-        showdown.setOption('tasklists', true);
-        showdown.setOption('requireSpaceBeforeHeadingText', true);
-        showdown.setOption('openLinksInNewWindow', true);
-        showdown.setOption('emoji', true);
-
-        var converter = new showdown.Converter(),
-        text = document.getElementById("markdown-source").textContent,
-        html = converter.makeHtml(text);
-
-        var body = document.getElementsByTagName("BODY")[0];
-        body.innerHTML = html;  
-      }
-    </script>
-    <pre id="markdown-source" style="display:none">${markdown}</pre>
-</head>
-<body class="markdown-body">
-</body>
-</html>
-`;
 
 async function handleShowFile(
   message: api_pipeserver_v0_3,
@@ -102,35 +69,19 @@ async function handleShowFile(
       message.request.url.substring(args.baseUrl.length);
     const stat = await Deno.lstat(path);
 
-    if (stat.isDirectory) {
-      // create file listing
-      let toc = [];
-      let includes = [];
-      for await (const dirEntry of Deno.readDir(path)) {
-        let icon = dirEntry.isFile ? ":clipboard:" : ":file_folder:";
-        let link = dirEntry.isFile
-          ? `./${dirEntry.name}`
-          : `./${dirEntry.name}/`;
-        toc.push(` - ${icon} [${dirEntry.name}](${link})`);
-        includes.push(`{!${link}!}`);
-      }
+    if (stat.isDirectory) return handleShowDirectory(message, pipe, path);
 
-      message.reply.body = htmlTemplate(
-        toc.join("\n") + "\n\n" + includes.join("\n"),
-      );
-    } else {
-      pipe.info(`Reading raw file ${path}`);
-      const fileData = new TextDecoder("utf-8").decode(
-        await Deno.readFile(path),
-      );
-      const isEncryptedFile = fileData.startsWith("VimCrypt");
-      message.reply.body = htmlTemplate(
-        isEncryptedFile
-          ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
-            "\n````"
-          : fileData,
-      );
-    }
+    pipe.info(`Reading raw file ${path}`);
+    const fileData = new TextDecoder("utf-8").decode(
+      await Deno.readFile(path),
+    );
+    const isEncryptedFile = fileData.startsWith("VimCrypt");
+    const directory = path.substring(0, path.lastIndexOf("/")) + "/";
+    message.reply.body = isEncryptedFile
+      ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
+        "\n````"
+      : postProcessIncludes(pipe, fileData, directory);
+    message.reply.type = "markdown";
     message.reply.returnCode = 200;
     return message;
   } catch (err) {
@@ -139,6 +90,40 @@ async function handleShowFile(
     message.reply.returnCode = 404;
     return message;
   }
+}
+
+async function handleShowDirectory(
+  message: api_pipeserver_v0_3,
+  pipe: PipeFunctions,
+  path: string,
+) {
+  // create file listing
+  const toc = [];
+  const includes = [];
+  for await (const dirEntry of Deno.readDir(path)) {
+    const icon = dirEntry.isFile ? ":clipboard:" : ":file_folder:";
+    const link = dirEntry.isFile ? `./${dirEntry.name}` : `./${dirEntry.name}/`;
+    const isMarkdownFile = dirEntry.isFile &&
+      dirEntry.name.toLowerCase().endsWith(".md");
+    toc.push(` - ${icon} [${dirEntry.name}](${link})`);
+    if (isMarkdownFile) includes.push(dirEntry.name);
+  }
+
+  const includesFiles = includes.sort().map((file) => `{!./${file}!}`).join(
+    "\n"+"\n",
+  );
+  const fileList = toc.sort().map((line) => `> ${line}`).join("\n");
+
+  const markdownResult = `
+${includesFiles}
+- - -
+${fileList}
+`;
+
+  message.reply.body = postProcessIncludes(pipe, markdownResult, path);
+  message.reply.type = "markdown";
+  message.reply.returnCode = 200;
+  return message;
 }
 
 async function handleShowRawFile(
@@ -151,7 +136,7 @@ async function handleShowRawFile(
     pipe.info(`Reading raw file ${path}`);
     const fileData = await Deno.readFile(path);
     message.reply.body = base64.fromUint8Array(fileData);
-    message.reply.base64 = true;
+    message.reply.type = "base64";
     message.reply.returnCode = 200;
     return message;
   } catch (err) {
@@ -163,7 +148,7 @@ async function handleShowRawFile(
   }
 }
 
-async function handleUpdateFile(
+function handleUpdateFile(
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) {
@@ -191,6 +176,27 @@ async function handleUpdateFile(
     message.reply.returnCode = 500;
     return message;
   }
+}
+
+function postProcessIncludes(
+  pipe: PipeFunctions,
+  markdown: string,
+  basePath: string,
+) {
+  return markdown.split("\n").map((row) => {
+    const rowTrim = row.trim().toLowerCase();
+    if (rowTrim.startsWith("{!") && rowTrim.endsWith("!}")) {
+      const fileName = basePath + rowTrim.substring(2, rowTrim.length - 2);
+      try {
+        const file = Deno.readFileSync(fileName);
+        pipe.info(`Including file '${fileName}'`);
+        return new TextDecoder("utf-8").decode(file);
+      } catch (_e) {
+        pipe.warn(`Could not include file! '${fileName}'`);
+      }
+    }
+    return row;
+  }).join("\n");
 }
 
 processPipeMessages<api_pipeserver_v0_3>(

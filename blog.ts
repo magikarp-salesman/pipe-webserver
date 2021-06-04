@@ -1,4 +1,4 @@
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
+import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
@@ -12,7 +12,7 @@ const args = getCommandLineArgs({
 });
 
 const blogHandler = async (
-  message: api_pipeserver_v0_2,
+  message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
   // we already have a return code so just forward the message
@@ -31,7 +31,7 @@ const blogHandler = async (
         message.reply.body = new TextDecoder("utf-8").decode(fileData);
       } else {
         message.reply.body = base64.fromUint8Array(fileData);
-        message.reply.base64 = true;
+        message.reply.type = "base64";
       }
     } else {
       message.reply.body = "Not found";
@@ -46,6 +46,6 @@ const blogHandler = async (
   }
 };
 
-processPipeMessages<api_pipeserver_v0_2>(blogHandler, "Started blog...");
+processPipeMessages<api_pipeserver_v0_3>(blogHandler, "Started blog...");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

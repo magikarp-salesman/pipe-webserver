@@ -53,7 +53,7 @@ export async function sendPipeDebug(message: string) {
 
 export async function sendPipeError(message: string, error?: any) {
   const errorMessage = error ? ` (${error})` : "";
-  const finalMessage: string = `🛑 [error] ${message}${errorMessage}\n`;
+  const finalMessage: string = `🔥 [error] ${message}${errorMessage}\n`;
   await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 }
 
@@ -85,11 +85,11 @@ async function convertToInternalMessage(
       url: req.url,
       method: req.method.toLowerCase(),
       authorization: req.headers.get("Authorization") ?? undefined,
+      ip: (req.conn.remoteAddr as Deno.NetAddr).hostname,
       userAgent: convertToUserAgent(req.headers?.get("User-Agent")),
       payload: base64.fromUint8Array(requestBodyBuffer),
     },
     reply: {
-      base64: false,
       headers: {},
     },
   };

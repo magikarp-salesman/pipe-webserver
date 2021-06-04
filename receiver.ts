@@ -28,7 +28,7 @@ function handlerReplies(
   pipe: PipeFunctions,
 ) {
   let body: string | Uint8Array = message.reply.body!!;
-  if (message.reply.base64 === true) {
+  if (message.reply.type === "base64") {
     pipe.debug("Converting base64 file...");
     body = base64.toUint8Array(message.reply.body!!);
   }

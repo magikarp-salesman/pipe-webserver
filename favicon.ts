@@ -1,4 +1,4 @@
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
+import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
@@ -13,21 +13,21 @@ const args = getCommandLineArgs({
 });
 
 const filterMessages = async (
-  message: api_pipeserver_v0_2,
+  message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
   if (message.request.url === "/favicon.ico") {
     pipe.debug("Sending favicon");
     message.reply.returnCode = 200;
     message.reply.headers["Content-Type"] = "image/x-icon";
-    message.reply.base64 = true;
+    message.reply.type = "base64";
     message.reply.body = args.favicon;
   }
 
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_2>(
+processPipeMessages<api_pipeserver_v0_3>(
   filterMessages,
   "Started favicon app...",
 );
