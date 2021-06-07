@@ -34,6 +34,6 @@ const basicAuth = async (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_2>(basicAuth, "Started basic auth...");
+processPipeMessages<api_pipeserver_v0_2>(basicAuth, "basic-auth");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

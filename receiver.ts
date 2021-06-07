@@ -61,6 +61,7 @@ receiverProcessor(
   handlerReplies,
   handlerTimeoutMessages,
   server,
+  "receiver",
   `Starting receiver on port: ${args.port}`,
 );
 

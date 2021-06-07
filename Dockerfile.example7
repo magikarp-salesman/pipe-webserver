@@ -1,4 +1,4 @@
-FROM hayd/deno:1.8.3 as build
+FROM hayd/deno:1.10.2 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
@@ -11,7 +11,7 @@ RUN cd build && \
     deno bundle markdown-to-html.ts > markdown-to-html.js.bundle && \
     deno bundle blog.ts > blog.js.bundle
 
-FROM hayd/deno:1.8.3 as runner
+FROM hayd/deno:1.10.2 as runner
 
 WORKDIR /root
 

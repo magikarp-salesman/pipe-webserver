@@ -18,7 +18,6 @@ const args = getCommandLineArgs({
   - Need a way to backup youtube videos and images .. a separate pipeline?
   - Need a way to download files instead of including them
   - Download as zip
-  - File list hidden or at the end
   - Edit other files near them from inside vim
   - Go/update into zips
   - A way of searching for something in all the files (tags?)
@@ -110,7 +109,7 @@ async function handleShowDirectory(
   }
 
   const includesFiles = includes.sort().map((file) => `{!./${file}!}`).join(
-    "\n"+"\n",
+    "\n" + "\n",
   );
   const fileList = toc.sort().map((line) => `> ${line}`).join("\n");
 
@@ -169,6 +168,7 @@ function handleUpdateFile(
     }
     message.reply.returnCode = 204;
     message.reply.headers["Content-Location"] = path;
+    message.request.payload = undefined; // no need to forward the payload
     return message;
   } catch (err) {
     pipe.error("Could not write file.", err);
@@ -201,7 +201,7 @@ function postProcessIncludes(
 
 processPipeMessages<api_pipeserver_v0_3>(
   vimEditorHandler,
-  "Started vim editor handler...",
+  "vim-editor",
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

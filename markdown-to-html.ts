@@ -26,7 +26,6 @@ const markdownToHtmlHandler = async (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
-  
   // we only care about messages that already contain type=markdown
   if (message.reply.type !== "markdown" || message.reply.body === undefined) {
     return message;
@@ -148,6 +147,11 @@ const baseCss = `
 			padding: 15px;
 		}
 	}
+
+  .markdown-body pre > svg {
+    max-width: 100%;
+    height: auto;
+  }
 </style>
 `;
 
@@ -163,17 +167,23 @@ const htmlTemplate = (markdown: string) =>
     <title>markdown page</title>
 </head>
 <body>
-<pre id="markdown-source" style="display:none">${toBase64Unicode(markdown)}</pre>
+<pre id="markdown-source" style="display:none">${
+    toBase64Unicode(markdown)
+  }</pre>
 <div id="markdown-body" class="markdown-body"><div>
 </body>
 </html>
 `;
 
-const toBase64Unicode = (str: string) => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt('0x'+p1))));
+const toBase64Unicode = (str: string) =>
+  btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) =>
+      String.fromCharCode(parseInt("0x" + p1))),
+  );
 
 processPipeMessages<api_pipeserver_v0_3>(
   markdownToHtmlHandler,
-  "Started markdown-to-html handler...",
+  "markdown-to-html",
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

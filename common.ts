@@ -17,12 +17,18 @@ export type PipeFunctions = {
   debug: (message: string) => void;
 };
 
-const pipeFunctions = {
-  message: sendPipeMessage,
-  info: sendPipeInfo,
-  warn: sendPipeWarn,
-  error: sendPipeError,
-  debug: sendPipeDebug,
+const pipeFunctions = (moduleName: string): PipeFunctions => {
+  const paddedModuleName = moduleName.toLowerCase().substr(0, 20).padStart(
+    20,
+    " ",
+  );
+  return {
+    message: sendPipeMessage(paddedModuleName),
+    info: sendPipeInfo(paddedModuleName),
+    warn: sendPipeWarn(paddedModuleName),
+    error: sendPipeError(paddedModuleName),
+    debug: sendPipeDebug(paddedModuleName),
+  };
 };
 
 export function getCommandLineArgs(defaults: Record<string, unknown>) {
@@ -32,43 +38,51 @@ export function getCommandLineArgs(defaults: Record<string, unknown>) {
   };
 }
 
-export function sendPipeMessage(message: api_pipeserver) {
-  console.log(JSON.stringify(message));
-}
+export const sendPipeMessage = (_moduleName: string) =>
+  (message: api_pipeserver) => {
+    console.log(JSON.stringify(message));
+  };
 
-export async function sendPipeInfo(message: string) {
-  const finalMessage: string = `ℹ️  [info ] ${message}\n`;
-  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-}
+export const sendPipeInfo = (moduleName: string) =>
+  async (message: string) => {
+    const finalMessage: string = `ℹ️  [info ][${moduleName}] ${message}\n`;
+    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+  };
 
-export async function sendPipeWarn(message: string) {
-  const finalMessage: string = `⚠  [warn ] ${message}\n`;
-  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-}
+export const sendPipeWarn = (moduleName: string) =>
+  async (message: string) => {
+    const finalMessage: string = `⚠  [warn ][${moduleName}] ${message}\n`;
+    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+  };
 
-export async function sendPipeDebug(message: string) {
-  const finalMessage: string = `🐛 [debug] ${message}\n`;
-  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-}
+export const sendPipeDebug = (moduleName: string) =>
+  async (message: string) => {
+    const finalMessage: string = `🐛 [debug][${moduleName}] ${message}\n`;
+    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+  };
 
-export async function sendPipeError(message: string, error?: any) {
-  const errorMessage = error ? ` (${error})` : "";
-  const finalMessage: string = `🔥 [error] ${message}${errorMessage}\n`;
-  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-}
+export const sendPipeError = (moduleName: string) =>
+  async (message: string, error?: any) => {
+    const errorMessage = error ? ` (${error})` : "";
+    const finalMessage: string =
+      `🔥 [error][${moduleName}] ${message}${errorMessage}\n`;
+    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+  };
 
 export async function processPipeMessages<T>(
   handler: (message: T, pipe: PipeFunctions) => any,
-  startMessage?: string,
+  moduleName: string,
+  startMessage: string = `Started handler...`,
 ) {
-  if (startMessage) sendPipeDebug(startMessage);
+  const pipe = pipeFunctions(moduleName);
+  pipe.debug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
     try {
       const message: T = JSON.parse(line);
-      const reply = await handler(message, pipeFunctions);
-      if (reply) sendPipeMessage(reply);
+      const reply = await handler(message, pipe);
+      if (reply) pipe.message(reply);
     } catch (error) {
-      sendPipeError("Could not parse NDJSON", error);
+      pipe.error("Could not parse NDJSON", error);
     }
   }
 }
@@ -133,30 +147,32 @@ export async function receiverProcessor(
     pipe: PipeFunctions,
   ) => any,
   server: Server,
-  startMessage?: string,
+  moduleName: string = "receiver",
+  startMessage: string = `Started handler...`,
 ) {
-  if (startMessage) sendPipeDebug(startMessage);
+  const pipe = pipeFunctions(moduleName);
+  pipe.debug(startMessage);
   for await (const req of server) {
     if (isReply(req)) {
       // read the reply request
       readReply<api_pipeserver_v0_3>(req).then((msg: api_pipeserver_v0_3) => {
-        sendPipeDebug(`Sending reply...`);
+        pipe.debug(`Sending reply...`);
         const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
         if (reqObject) {
-          handlerReplies(msg, reqObject, pipeFunctions);
+          handlerReplies(msg, reqObject, pipe);
           requests.delete(msg.uuid);
         } else {
-          sendPipeError(`Request not found. ${msg.uuid}`);
+          pipe.error(`Request not found. ${msg.uuid}`);
         }
       }).catch((err) => {
-        sendPipeError(`Error sending reply. ${err}`);
+        pipe.error(`Error sending reply. ${err}`);
       });
     } else {
       // handle the new request
-      sendPipeDebug(`Received request`);
+      pipe.debug(`Received request`);
       let ndjson: api_pipeserver_v0_3 = await convertToInternalMessage(req);
       requests.set(ndjson.uuid, req);
-      handlerNewMessages(ndjson, pipeFunctions);
+      handlerNewMessages(ndjson, pipe);
     }
   }
 }

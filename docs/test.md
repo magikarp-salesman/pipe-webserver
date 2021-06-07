@@ -1,5 +1,5 @@
 ---
-title: pipe-webserver
+title: pipe-webserver 😀
 created-date: Fri Jun  4 19:21:20 WEST 2021
 ---
 
@@ -11,7 +11,7 @@ created-date: Fri Jun  4 19:21:20 WEST 2021
 
 ## Actual content
 
-Let's try to edit this from vim 😀
+Let's try to edit this from vim 
 
 And then open it in some other browser
 
@@ -22,13 +22,17 @@ And then open it in some other browser
 
 {!./subfolder/subfile.md!}
 
+> A simple graph
+
 ````dot
 digraph {
         A -> B -> C
 }
 ````
 
+> How to print the NDJSON message between 2 steps to the terminal
+
 ````bash
-$ echo 'test' | pipe-webserver | cat file.md
-$ exit
+$ echo "the easiest way to see the messages in-between steps using tee"
+$ receiver | favicon | blog | tee /dev/stderr | emitter
 ````

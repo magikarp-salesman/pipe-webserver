@@ -65,7 +65,7 @@ const removeUnneededInfo = (
 
 processPipeMessages<api_pipeserver_v0_3>(
   basicAuth,
-  "Started timed basic auth...",
+  "timed-basic-auth",
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

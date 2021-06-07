@@ -29,7 +29,7 @@ const filterMessages = async (
 
 processPipeMessages<api_pipeserver_v0_3>(
   filterMessages,
-  "Started favicon app...",
+  "favicon",
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet
