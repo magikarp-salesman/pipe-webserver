@@ -29,6 +29,7 @@ const blogHandler = async (
       const fileData = await Deno.readFile(path);
       if (isHtml) {
         message.reply.body = new TextDecoder("utf-8").decode(fileData);
+        message.reply.type = "html";
       } else {
         message.reply.body = base64.fromUint8Array(fileData);
         message.reply.type = "base64";

@@ -1,12 +1,12 @@
-import { parse } from "https://deno.land/std/flags/mod.ts";
+import { parse } from "https://deno.land/std@0.97.0/flags/mod.ts";
 import { api_pipeserver } from "./api/api_v0_1.ts";
 import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import { readLines } from "https://deno.land/std@0.77.0/io/bufio.ts";
-import { v4 } from "https://deno.land/std/uuid/mod.ts";
+import { readLines } from "https://deno.land/std@0.97.0/io/bufio.ts";
+import { v4 } from "https://deno.land/std@0.97.0/uuid/mod.ts";
 import {
   Server,
   ServerRequest,
-} from "https://deno.land/std@0.77.0/http/server.ts";
+} from "https://deno.land/std@0.97.0/http/server.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 
 export type PipeFunctions = {
@@ -165,7 +165,7 @@ export async function receiverProcessor(
           pipe.error(`Request not found. ${msg.uuid}`);
         }
       }).catch((err) => {
-        pipe.error(`Error sending reply. ${err}`);
+        pipe.error(`Error sending reply.`, err);
       });
     } else {
       // handle the new request

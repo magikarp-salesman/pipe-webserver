@@ -10,6 +10,7 @@ import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 const args = getCommandLineArgs({
   baseUrl: "/docs",
   localFolder: "./docs",
+  host: "http://localhost:8000",
 });
 
 /*
@@ -17,8 +18,8 @@ const args = getCommandLineArgs({
   - Need a way to upload files/images easily (drop unto page for upload?)
   - Need a way to backup youtube videos and images .. a separate pipeline?
   - Need a way to download files instead of including them
+  - GPG apply key to the outcome of the pipeline if it is html
   - Download as zip
-  - Edit other files near them from inside vim
   - Go/update into zips
   - A way of searching for something in all the files (tags?)
 */
@@ -133,6 +134,11 @@ async function handleShowRawFile(
     const path = args.localFolder +
       message.request.url.substring(args.baseUrl.length);
     pipe.info(`Reading raw file ${path}`);
+
+    const stat = await Deno.lstat(path);
+
+    if (stat.isDirectory) return handleShowRawDirectory(message, pipe, path);
+
     const fileData = await Deno.readFile(path);
     message.reply.body = base64.fromUint8Array(fileData);
     message.reply.type = "base64";
@@ -143,6 +149,56 @@ async function handleShowRawFile(
 
     message.reply.body = "This is a new file";
     message.reply.returnCode = 200;
+    return message;
+  }
+}
+
+async function handleShowRawDirectory(
+  message: api_pipeserver_v0_3,
+  pipe: PipeFunctions,
+  dir: string,
+) {
+  try {
+    // create file listing
+    const files = [];
+    for await (const dirEntry of Deno.readDir(dir)) {
+      const isMarkdownFile = dirEntry.isFile &&
+        dirEntry.name.toLowerCase().endsWith(".md");
+      if (dirEntry.isFile) {
+        if (isMarkdownFile) {
+          files.push(dirEntry.name + '\t\t" M');
+        } else {
+          files.push(dirEntry.name);
+        }
+      } else {
+        files.push(dirEntry.name + "/" + '\t\t" 📁 dir');
+      }
+    }
+
+    const fileLinks = files.map((f) =>
+      ":e! " + args.host + args.baseUrl +
+      dir.substring(args.localFolder.length) + f
+    ).sort().join("\n");
+    const trimAllLines = (text: string) =>
+      text.split("\n").map((l) => l.trim()).join("\n");
+    const result = trimAllLines(`\" Files in directory: ${dir}
+
+  ${fileLinks}
+  
+  " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
+  "
+  " helpful commands:
+  " :nnoremap <leader>el yy:@"<CR>
+  `);
+
+    pipe.info(`Reading raw directory listing`);
+    message.reply.body = result;
+    message.reply.type = undefined;
+    message.reply.returnCode = 200;
+    return message;
+  } catch (err) {
+    pipe.info("Could not read directory. (sending error)");
+    message.reply.returnCode = 404;
     return message;
   }
 }

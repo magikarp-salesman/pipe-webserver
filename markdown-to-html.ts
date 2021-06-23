@@ -42,15 +42,13 @@ const markdownToHtmlHandler = async (
 const highlightSupport = `
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
-  <script type="text/javascript">
-  window.addEventListener('load', hljs.highlightAll);
-  </script>
+  <script>window.addEventListener('load', hljs.highlightAll);</script>
 `;
 
 const graphvizSupport = `
   <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
-  <script type="text/javascript">
+  <script>
   window.addEventListener('load', () => {
       var viz = new Viz();
 
@@ -76,10 +74,11 @@ const graphvizSupport = `
   </script>
 `;
 
+// add this for extra css:
 const autotocSupport = `
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.11.1/tocbot.min.js"></script>
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.11.1/tocbot.css"> -->
-  <script type="text/javascript">
+  <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.11.1/tocbot.css">-->
+  <script>
   window.addEventListener('load', () => {
     tocbot.init({
       // Where to render the table of contents.
@@ -95,7 +94,7 @@ const showdownjsSupport = `
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
 
-  <script type="text/javascript">
+  <script>
 
   function decodeUnicode(str) {
     // Going backwards: from bytestream, to percent-encoding, to original string.
@@ -157,6 +156,7 @@ const baseCss = `
 
 const htmlTemplate = (markdown: string) =>
   `<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
     ${baseCss}
@@ -170,7 +170,7 @@ const htmlTemplate = (markdown: string) =>
 <pre id="markdown-source" style="display:none">${
     toBase64Unicode(markdown)
   }</pre>
-<div id="markdown-body" class="markdown-body"><div>
+<div id="markdown-body" class="markdown-body"></div>
 </body>
 </html>
 `;

@@ -1,4 +1,4 @@
-FROM hayd/deno:1.8.3 as build
+FROM hayd/deno:1.10.2 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
@@ -14,7 +14,7 @@ FROM inutano/wget as fetcher
 
 RUN wget https://github.com/fintermobilityas/warp/releases/download/v0.4.4/linux-x64.warp-packer
 
-FROM hayd/deno:1.8.3 as packer
+FROM hayd/deno:1.10.2 as packer
 
 WORKDIR /root
 

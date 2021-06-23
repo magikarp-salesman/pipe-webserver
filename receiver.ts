@@ -4,7 +4,7 @@ import {
   serve,
   Server,
   ServerRequest,
-} from "https://deno.land/std@0.77.0/http/server.ts";
+} from "https://deno.land/std@0.97.0/http/server.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 import {
   getCommandLineArgs,
