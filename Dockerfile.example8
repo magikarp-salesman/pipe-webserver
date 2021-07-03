@@ -33,7 +33,6 @@ COPY --from=build build/youtube-cache.js.bundle youtube-cache.js
 
 COPY --from=golangbuilder /root/youtubedr youtubedr
 
-
 RUN mkdir -p /root/docs
 COPY docs/ /root/docs/
 RUN ln -s /root/youtubedr /usr/bin/youtubedr
