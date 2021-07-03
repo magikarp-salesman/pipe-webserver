@@ -27,6 +27,7 @@ And then open it in some other browser
 ````dot
 digraph {
         A -> B -> C
+	Service_B -> Service_A
 }
 ````
 
@@ -36,5 +37,17 @@ digraph {
 $ echo "the easiest way to see the messages in-between steps using tee"
 $ receiver | favicon | blog | tee /dev/stderr | emitter
 ````
+
+## Embedded video
+[youtube video](https://www.youtube.com/watch?v=UrYPbF8_xNk)
+
+````java
+class SystemClass {
+	public static main(String[]: args){
+		System.out.println("Hello World");
+	}
+}
+````
+
 
 {!footer.md!}

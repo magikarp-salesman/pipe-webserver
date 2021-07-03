@@ -4,7 +4,7 @@ import {
   PipeFunctions,
   processPipeMessages,
 } from "./common.ts";
-import { minifyHTML } from "https://deno.land/x/minifier/mod.ts";
+import { minifyHTML } from "https://deno.land/x/minifier@v1.1.1/mod.ts";
 
 const args = getCommandLineArgs({
   minifyCSS: true,

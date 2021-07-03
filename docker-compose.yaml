@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+    application:
+        build:
+            context: .
+            dockerfile: Dockerfile.example9
+        ports: 
+            - "8000:8000"
+        volumes:
+            - "./docs:/root/docs"
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.2
+    puppeteer:
+        build:
+            context: .
+            dockerfile: Dockerfile.puppeteer
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.10
+networks:
+    pipe:
+        ipam:
+            config:
+                - subnet: 10.5.0.0/16

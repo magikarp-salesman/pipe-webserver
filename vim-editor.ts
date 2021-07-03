@@ -16,12 +16,12 @@ const args = getCommandLineArgs({
 /*
   TODO:
   - Need a way to upload files/images easily (drop unto page for upload?)
-  - Need a way to backup youtube videos and images .. a separate pipeline?
   - Need a way to download files instead of including them
   - GPG apply key to the outcome of the pipeline if it is html
   - Download as zip
   - Go/update into zips
   - A way of searching for something in all the files (tags?)
+  - Include encrypted file
 */
 
 const vimEditorHandler = async (
