@@ -169,20 +169,23 @@ const embeddedYoutubeLinks = `
 
 const baseCss = `
 <style>
-	.markdown-body {
+  @media print {
+    h1:not(:first-of-type) {
+      break-before:always
+    }
+  }
+  @media (max-width: 767px) {
+    .markdown-body {
+      padding: 15px;
+    }
+  }
+  .markdown-body {
 		box-sizing: border-box;
 		min-width: 200px;
 		max-width: 980px;
 		margin: 0 auto;
 		padding: 45px;
 	}
-
-	@media (max-width: 767px) {
-		.markdown-body {
-			padding: 15px;
-		}
-	}
-
   .markdown-body pre > svg {
     max-width: 100%;
     height: auto;
@@ -201,7 +204,7 @@ const htmlTemplate = (markdown: string) =>
     ${args.graphvizSupport ? graphvizSupport : ""}
     ${args.autotocSupport ? autotocSupport : ""}
     ${args.embeddedYoutubeLinks ? embeddedYoutubeLinks : ""}
-    <title>markdown page</title>
+    <title>untitle file</title>
 </head>
 <body>
 <pre id="markdown-source" style="display:none">${

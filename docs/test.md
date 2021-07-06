@@ -38,6 +38,8 @@ $ echo "the easiest way to see the messages in-between steps using tee"
 $ receiver | favicon | blog | tee /dev/stderr | emitter
 ````
 
+# Video page
+
 ## Embedded video
 [youtube video](https://www.youtube.com/watch?v=UrYPbF8_xNk)
 

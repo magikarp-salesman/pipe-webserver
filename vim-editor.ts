@@ -162,23 +162,40 @@ async function handleShowRawDirectory(
     // create file listing
     const files = [];
     for await (const dirEntry of Deno.readDir(dir)) {
-      const isMarkdownFile = dirEntry.isFile &&
-        dirEntry.name.toLowerCase().endsWith(".md");
-      if (dirEntry.isFile) {
-        if (isMarkdownFile) {
-          files.push(dirEntry.name + '\t\t" M');
-        } else {
-          files.push(dirEntry.name);
-        }
-      } else {
-        files.push(dirEntry.name + "/" + '\t\t" 📁 dir');
-      }
+      files.push(dirEntry);
     }
 
-    const fileLinks = files.map((f) =>
-      ":e! " + args.host + args.baseUrl +
-      dir.substring(args.localFolder.length) + f
-    ).sort().join("\n");
+    let maxLenght = 0;
+    const fileLinks = files.map((entry) => {
+      const isMarkdownFile = entry.isFile &&
+        entry.name.toLowerCase().endsWith(".md");
+      const isDirectory = entry.isDirectory;
+      return {
+        ...entry,
+        isMarkdownFile: isMarkdownFile,
+        isDirectory: isDirectory,
+        filename: isDirectory ? entry.name + "/" : entry.name,
+      };
+    }).map((entry) => {
+      maxLenght = entry.filename.length > maxLenght
+        ? entry.filename.length
+        : maxLenght;
+      return entry;
+    }).map((entry) => {
+      let diff = maxLenght - entry.filename.length;
+      let symbol = entry.isMarkdownFile ? "M" : entry.isDirectory ? "📁 dir" : "…";
+      return {
+        ...entry,
+        filename: entry.filename + " ".repeat(diff + 5) + '" ' + symbol,
+      };
+    }).map((entry) => {
+      return {
+        ...entry,
+        link: ":e! " + args.host + args.baseUrl +
+          dir.substring(args.localFolder.length) + entry.filename,
+      };
+    }).map((entry) => entry.link).sort().join("\n");
+
     const trimAllLines = (text: string) =>
       text.split("\n").map((l) => l.trim()).join("\n");
     const result = trimAllLines(`\" Files in directory: ${dir}
