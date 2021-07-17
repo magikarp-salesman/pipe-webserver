@@ -204,7 +204,7 @@ const htmlTemplate = (markdown: string) =>
     ${args.graphvizSupport ? graphvizSupport : ""}
     ${args.autotocSupport ? autotocSupport : ""}
     ${args.embeddedYoutubeLinks ? embeddedYoutubeLinks : ""}
-    <title>untitle file</title>
+    <title>untitled file</title>
 </head>
 <body>
 <pre id="markdown-source" style="display:none">${

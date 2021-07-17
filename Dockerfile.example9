@@ -40,7 +40,7 @@ COPY docs/ /root/docs/
 RUN ln -s /root/youtubedr /usr/bin/youtubedr
 
 RUN deno install --allow-net=:8000 /root/receiver.js
-RUN deno install /root/timed-basic-auth.js --accepted='vim:simplythebest' --realm='vim is life' 
+RUN deno install /root/timed-basic-auth.js --accepted='vim:simplythebest' --realm='vim is life' --allowedForXMinutes='30'
 RUN deno install /root/markdown-to-html.js
 RUN deno install /root/minify-html.js
 RUN deno install --allow-run /root/youtube-cache.js --targetLocation='/root/docs/.youtube_cache'

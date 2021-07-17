@@ -6,6 +6,7 @@ import {
   processPipeMessages,
 } from "./common.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
+import { firstBy } from "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
@@ -183,7 +184,11 @@ async function handleShowRawDirectory(
       return entry;
     }).map((entry) => {
       let diff = maxLenght - entry.filename.length;
-      let symbol = entry.isMarkdownFile ? "M" : entry.isDirectory ? "📁 dir" : "…";
+      let symbol = entry.isMarkdownFile
+        ? "M"
+        : entry.isDirectory
+        ? "📁 dir"
+        : "…";
       return {
         ...entry,
         filename: entry.filename + " ".repeat(diff + 5) + '" ' + symbol,
@@ -194,7 +199,11 @@ async function handleShowRawDirectory(
         link: ":e! " + args.host + args.baseUrl +
           dir.substring(args.localFolder.length) + entry.filename,
       };
-    }).map((entry) => entry.link).sort().join("\n");
+    }).sort(
+      firstBy("isDirectory", "desc").thenBy("isMarkdownFile", "desc").thenBy(
+        "filename",
+      ),
+    ).map((entry) => entry.link).join("\n");
 
     const trimAllLines = (text: string) =>
       text.split("\n").map((l) => l.trim()).join("\n");

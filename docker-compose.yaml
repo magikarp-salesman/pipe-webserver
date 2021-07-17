@@ -7,7 +7,7 @@ services:
         ports: 
             - "8000:8000"
         volumes:
-            - "./docs:/root/docs"
+            - "./my_docs:/root/docs"
         networks:
             pipe:
                 ipv4_address: 10.5.0.2

@@ -1,3 +1,3 @@
 -----------
 
-![footer](made-with-vim.gif)
+![footer-vim-image](made-with-vim.gif)
