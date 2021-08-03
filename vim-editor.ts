@@ -1,4 +1,5 @@
 import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
+import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
 import { ensureDirSync } from "https://deno.land/std@0.97.0/fs/mod.ts";
 import {
   getCommandLineArgs,
@@ -14,19 +15,22 @@ const args = getCommandLineArgs({
   host: "http://localhost:8000",
 });
 
+type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+
 /*
   TODO:
   - Need a way to upload files/images easily (drop unto page for upload?)
   - Need a way to download files instead of including them
-  - GPG apply key to the outcome of the pipeline if it is html
   - Download as zip
   - Go/update into zips
   - A way of searching for something in all the files (tags?)
   - Include encrypted file
+  - A cache system by passing the info to fill ETag value
+  - separate API based on features instead of versioning
 */
 
 const vimEditorHandler = async (
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) => {
   // we already have a return code so just forward the message
@@ -38,6 +42,11 @@ const vimEditorHandler = async (
     !(message.request.url.endsWith(".md") || message.request.url.endsWith("/"))
   ) {
     return message; // forward the message
+  }
+
+  if (message.request.method == "head") {
+    // this is the browser asking for updates
+    return await handleHeadRequest(message, pipe);
   }
 
   if (message.request.userAgent == "other") {
@@ -61,8 +70,30 @@ const vimEditorHandler = async (
   return message; // forward message
 };
 
+async function handleHeadRequest(
+  message: api_pipe_server_combo,
+  pipe: PipeFunctions,
+) {
+  // TODO improve code
+  // TODO add the method also for directory listings
+  // TODO create the reload code
+  try {
+    const path = args.localFolder +
+      message.request.url.substring(args.baseUrl.length);
+    const stat = await Deno.lstat(path);
+    message.reply.cacheKey = stat.mtime?.toString() || "";
+    message.reply.returnCode = 200;
+    return message;
+  } catch (err) {
+    pipe.info("Could not read file.");
+    message.reply.body = "Not found";
+    message.reply.returnCode = 404;
+    return message;
+  }
+}
+
 async function handleShowFile(
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) {
   try {
@@ -83,6 +114,7 @@ async function handleShowFile(
         "\n````"
       : postProcessIncludes(pipe, fileData, directory);
     message.reply.type = "markdown";
+    message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
     return message;
   } catch (err) {
@@ -94,7 +126,7 @@ async function handleShowFile(
 }
 
 async function handleShowDirectory(
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
   path: string,
 ) {
@@ -109,6 +141,7 @@ async function handleShowDirectory(
     toc.push(` - ${icon} [${dirEntry.name}](${link})`);
     if (isMarkdownFile) includes.push(dirEntry.name);
   }
+  const stat = await Deno.lstat(path);
 
   const includesFiles = includes.sort().map((file) => `{!./${file}!}`).join(
     "\n" + "\n",
@@ -121,6 +154,7 @@ ${includesFiles}
 ${fileList}
 `;
 
+  message.reply.cacheKey = stat.mtime?.toString() || "";
   message.reply.body = postProcessIncludes(pipe, markdownResult, path);
   message.reply.type = "markdown";
   message.reply.returnCode = 200;
@@ -128,7 +162,7 @@ ${fileList}
 }
 
 async function handleShowRawFile(
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) {
   try {
@@ -155,7 +189,7 @@ async function handleShowRawFile(
 }
 
 async function handleShowRawDirectory(
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
   dir: string,
 ) {
@@ -230,7 +264,7 @@ async function handleShowRawDirectory(
 }
 
 function handleUpdateFile(
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) {
   try {
@@ -281,7 +315,7 @@ function postProcessIncludes(
   }).join("\n");
 }
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<api_pipe_server_combo>(
   vimEditorHandler,
   "vim-editor",
 );

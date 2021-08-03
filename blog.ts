@@ -1,4 +1,5 @@
 import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
+import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
 import {
   getCommandLineArgs,
   PipeFunctions,
@@ -11,8 +12,10 @@ const args = getCommandLineArgs({
   localFolder: "./docs",
 });
 
+type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+
 const blogHandler = async (
-  message: api_pipeserver_v0_3,
+  message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) => {
   // we already have a return code so just forward the message
@@ -27,6 +30,8 @@ const blogHandler = async (
       pipe.debug(`Reading file ${path}`);
 
       const fileData = await Deno.readFile(path);
+      const stat = await Deno.lstat(path);
+      message.reply.cacheKey = stat.mtime?.toString() || "";
       if (isHtml) {
         message.reply.body = new TextDecoder("utf-8").decode(fileData);
         message.reply.type = "html";
@@ -47,6 +52,6 @@ const blogHandler = async (
   }
 };
 
-processPipeMessages<api_pipeserver_v0_3>(blogHandler, "blog");
+processPipeMessages<api_pipe_server_combo>(blogHandler, "blog");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

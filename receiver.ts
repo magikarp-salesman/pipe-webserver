@@ -38,9 +38,9 @@ function handlerReplies(
     status: message.reply.returnCode ?? 200,
     headers: new Headers(),
   };
+
   Object.entries(message.reply.headers).forEach((item: [string, unknown]) => {
-    let value = String(item[1]);
-    newObject.headers!!.append(item[0], value);
+    newObject.headers!!.append(item[0], String(item[1]));
   });
   req.respond(newObject);
 }

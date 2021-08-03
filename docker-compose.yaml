@@ -3,11 +3,12 @@ services:
     application:
         build:
             context: .
-            dockerfile: Dockerfile.example9
+            dockerfile: Dockerfile.example10
+        restart: always
         ports: 
             - "8000:8000"
         volumes:
-            - "./my_docs:/root/docs"
+            - "./docs:/root/docs"
         networks:
             pipe:
                 ipv4_address: 10.5.0.2
@@ -15,6 +16,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.puppeteer
+        restart: always
         networks:
             pipe:
                 ipv4_address: 10.5.0.10

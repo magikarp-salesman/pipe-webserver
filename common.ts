@@ -1,6 +1,7 @@
 import { parse } from "https://deno.land/std@0.97.0/flags/mod.ts";
 import { api_pipeserver } from "./api/api_v0_1.ts";
 import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
+import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
 import { readLines } from "https://deno.land/std@0.97.0/io/bufio.ts";
 import { v4 } from "https://deno.land/std@0.97.0/uuid/mod.ts";
 import {
@@ -8,6 +9,8 @@ import {
   ServerRequest,
 } from "https://deno.land/std@0.97.0/http/server.ts";
 import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
+
+type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
 
 export type PipeFunctions = {
   message: (message: api_pipeserver) => void;
@@ -89,10 +92,10 @@ export async function processPipeMessages<T>(
 
 async function convertToInternalMessage(
   req: ServerRequest,
-): Promise<api_pipeserver_v0_3> {
+): Promise<api_pipe_server_combo> {
   const requestBodyBuffer: Uint8Array = await Deno.readAll(req.body);
 
-  let newRequest: api_pipeserver_v0_3 = {
+  let newRequest: api_pipe_server_combo = {
     version: 0.3,
     uuid: v4.generate(),
     request: {
@@ -102,6 +105,7 @@ async function convertToInternalMessage(
       ip: (req.conn.remoteAddr as Deno.NetAddr).hostname,
       userAgent: convertToUserAgent(req.headers?.get("User-Agent")),
       payload: base64.fromUint8Array(requestBodyBuffer),
+      cacheKeyMatch: req.headers.get("If-None-Match") ?? undefined,
     },
     reply: {
       headers: {},
