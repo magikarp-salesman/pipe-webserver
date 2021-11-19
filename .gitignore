@@ -4,3 +4,5 @@ warp-packer
 my_docs
 .youtube_cache
 tags
+id_rsa
+id_rsa.pub

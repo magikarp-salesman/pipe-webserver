@@ -1,4 +1,4 @@
-FROM hayd/deno:1.10.2 as build
+FROM denoland/deno:1.15.3 as build
 
 RUN mkdir -p build build/api
 COPY *.ts build/
@@ -13,18 +13,27 @@ RUN cd build && \
     deno bundle blog.ts > blog.js.bundle && \
     deno bundle cache.ts > cache.js.bundle && \
     deno bundle youtube-cache.ts > youtube-cache.js.bundle && \
+    deno bundle gotty-server.ts > gotty-server.js.bundle && \
     deno bundle --unstable ssr-html-page.ts > ssr-html-page.js.bundle
 
 FROM golang as golangbuilder
 
 WORKDIR /root
 RUN git clone https://github.com/kkdai/youtube.git && cd youtube && go build -o /root/youtubedr ./cmd/youtubedr
+RUN wget https://github.com/yudai/gotty/releases/download/v1.0.1/gotty_linux_amd64.tar.gz && tar -xvf gotty_linux_amd64.tar.gz
 
-FROM hayd/deno:1.10.2 as runner
+FROM denoland/deno:1.15.3 as runner
 
 WORKDIR /root
 # YOUTUBE-CACHE
 COPY --from=golangbuilder /root/youtubedr youtubedr
+# GOTTY TERMINAL
+COPY --from=golangbuilder /root/gotty gotty
+COPY id_rsa /root/.ssh/id_rsa
+RUN chmod 0600 /root/.ssh/id_rsa
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
+    ssh
 
 COPY --from=build build/receiver.js.bundle receiver.js
 COPY --from=build build/emmiter.js.bundle emmiter.js
@@ -36,10 +45,12 @@ COPY --from=build build/minify-html.js.bundle minify-html.js
 COPY --from=build build/cache.js.bundle cache.js
 COPY --from=build build/youtube-cache.js.bundle youtube-cache.js
 COPY --from=build build/ssr-html-page.js.bundle ssr-html-page.js
+COPY --from=build build/gotty-server.js.bundle gotty-server.js
 
 RUN mkdir -p /root/docs
 COPY docs/ /root/docs/
 RUN ln -s /root/youtubedr /usr/bin/youtubedr
+RUN ln -s /root/gotty /usr/bin/gotty
 
 RUN deno install --allow-net=:8000 /root/receiver.js
 RUN deno install /root/timed-basic-auth.js --accepted='vim:simplythebest' --realm='vim is life' --allowedForXMinutes='30'
@@ -48,10 +59,14 @@ RUN deno install /root/minify-html.js
 RUN deno install /root/cache.js
 RUN deno install --allow-run /root/youtube-cache.js --targetLocation='/root/docs/.youtube_cache'
 RUN deno install --allow-net='10.5.0.10:9222' --allow-env /root/ssr-html-page.js --host='10.5.0.10'
-RUN deno install --allow-read='/root/docs' --allow-write='/root/docs' /root/vim-editor.js
+RUN deno install --allow-read='/root/docs' --allow-write='/root/docs' --allow-run /root/vim-editor.js
 RUN deno install --allow-read='/root/docs' /root/blog.js
 RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+RUN deno install --allow-run /root/gotty-server.js --gottyCommand="ssh -oStrictHostKeyChecking=no -i /root/.ssh/id_rsa 10.5.0.20 -t TERM=xterm-256color vim"
 
 EXPOSE 8000
-ENTRYPOINT [ "/bin/ash" , "-exo", "pipefail", "-c"]
-CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
+EXPOSE 9000
+ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
+# CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
+CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | cache | minify-html | emmiter "]
+# CMD [" receiver |  | emmiter "]

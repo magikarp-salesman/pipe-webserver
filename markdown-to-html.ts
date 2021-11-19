@@ -143,6 +143,15 @@ const showdownjsSupport = `
         document.title = converter.getMetadata().title;
       }
 
+      Object.keys(converter.getMetadata()).map(
+        (data) => {
+          var meta = document.createElement('meta');
+          meta.name = data;
+          meta.content = converter.getMetadata()[data];
+          document.getElementsByTagName('HEAD')[0].appendChild(meta);
+        }
+      );
+
       // remove the markdown source from the document
       document.getElementById("markdown-source").remove()
     });
@@ -201,6 +210,9 @@ const baseCss = `
   .markdown-body pre > svg {
     max-width: 100%;
     height: auto;
+  }
+  .markdown-body svg {
+    max-width: 100%;
   }
 </style>
 `;

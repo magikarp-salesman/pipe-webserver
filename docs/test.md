@@ -52,4 +52,21 @@ class SystemClass {
 }
 ```
 
+<details>
+<summary>Here's some collapsible code hidden...</summary>
+<p>
+
+```c#
+public class Order
+{
+    public int OrderId { get; set; }
+    public int CustomerId { get; set; }
+
+    public List<int> Products { get; set; }
+}
+```
+
+</p>
+</details>  
+
 {!footer.md!}

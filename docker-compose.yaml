@@ -7,8 +7,9 @@ services:
         restart: always
         ports: 
             - "8000:8000"
+            - "9000:9000"
         volumes:
-            - "./docs:/root/docs"
+            - "./my_docs:/root/docs"
         networks:
             pipe:
                 ipv4_address: 10.5.0.2
@@ -20,6 +21,14 @@ services:
         networks:
             pipe:
                 ipv4_address: 10.5.0.10
+    vim:
+        build:
+            context: .
+            dockerfile: Dockerfile.vim
+        restart: always
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.20
 networks:
     pipe:
         ipam:

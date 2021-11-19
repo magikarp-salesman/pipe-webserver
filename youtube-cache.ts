@@ -57,7 +57,8 @@ async function waitForCompletion(pipe: PipeFunctions, job: any) {
   const status = await job.status();
   if (status.code != 0) {
     const rawError = await job.stderrOutput();
-    pipe.error("error downloading video: " + rawError);
+    const errorString = new TextDecoder().decode(rawError);
+    pipe.error("error downloading video: " + errorString);
   }
 }
 

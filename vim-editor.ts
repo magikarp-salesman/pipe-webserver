@@ -23,10 +23,8 @@ type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
   - Need a way to download files instead of including them
   - Download as zip
   - Go/update into zips
-  - A way of searching for something in all the files (tags?)
   - Include encrypted file
   - A cache system by passing the info to fill ETag value
-  - separate API based on features instead of versioning
 */
 
 const vimEditorHandler = async (
@@ -36,10 +34,15 @@ const vimEditorHandler = async (
   // we already have a return code so just forward the message
   if (message.reply.returnCode) return message;
 
+  const url = new URL(args.host + message.request.url);
+  const grepQuery = url.searchParams.get("grep");
+  const requestPath = message.request.url.split("?")[0];
+
   // don't handle any message that is not requesting a .md file starting on the baseURL
   if (
-    !message.request.url.startsWith(args.baseUrl) ||
-    !(message.request.url.endsWith(".md") || message.request.url.endsWith("/"))
+    !requestPath.startsWith(args.baseUrl) ||
+    !(requestPath.endsWith(".md") || requestPath.endsWith("/") ||
+      grepQuery !== undefined)
   ) {
     return message; // forward the message
   }
@@ -57,6 +60,14 @@ const vimEditorHandler = async (
   if (message.request.userAgent == "wget") {
     // this is a request from vim, send the raw file
     return await handleShowRawFile(message, pipe);
+  }
+
+  if (
+    message.request.userAgent == "curl" && message.request.method === "get" &&
+    grepQuery != undefined
+  ) {
+    // this is a search request from vimgrep
+    return handleSearchRequest(message, pipe, grepQuery);
   }
 
   if (message.request.userAgent == "curl" && message.request.method === "put") {
@@ -182,7 +193,14 @@ async function handleShowRawFile(
   } catch (err) {
     pipe.info("Could not read file. (creating a new file)");
 
-    message.reply.body = "This is a new file";
+    message.reply.body = `---
+title: new markdown file
+author: anonymous
+created: ${new Date().toISOString()}
+---
+
+This is a new file
+`;
     message.reply.returnCode = 200;
     return message;
   }
@@ -217,8 +235,8 @@ async function handleShowRawDirectory(
         : maxLenght;
       return entry;
     }).map((entry) => {
-      let diff = maxLenght - entry.filename.length;
-      let symbol = entry.isMarkdownFile
+      const diff = maxLenght - entry.filename.length;
+      const symbol = entry.isMarkdownFile
         ? "M"
         : entry.isDirectory
         ? "📁 dir"
@@ -230,7 +248,7 @@ async function handleShowRawDirectory(
     }).map((entry) => {
       return {
         ...entry,
-        link: ":e! " + args.host + args.baseUrl +
+        link: ":silent e! " + args.host + args.baseUrl +
           dir.substring(args.localFolder.length) + entry.filename,
       };
     }).sort(
@@ -245,6 +263,10 @@ async function handleShowRawDirectory(
 
   ${fileLinks}
   
+  " search by grep
+  :set grepprg=curl\\ --silent\\ ${args.host +
+      args.baseUrl}/?grep=$* | grep! | redraw! | copen
+
   " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
   "
   " helpful commands:
@@ -257,7 +279,7 @@ async function handleShowRawDirectory(
     message.reply.returnCode = 200;
     return message;
   } catch (err) {
-    pipe.info("Could not read directory. (sending error)");
+    pipe.info("Could not read directory. (sending error): " + err);
     message.reply.returnCode = 404;
     return message;
   }
@@ -292,6 +314,57 @@ function handleUpdateFile(
     message.reply.returnCode = 500;
     return message;
   }
+}
+
+async function handleSearchRequest(
+  message: api_pipe_server_combo,
+  pipe: PipeFunctions,
+  query: string,
+) {
+  const url = message.request.url.split("?")[0];
+  const path = args.localFolder + url.substring(args.baseUrl.length);
+  const directory = path;
+  pipe.info(`Making search in directory ${path}`);
+
+  query = (query != "") ? query : query = "^#\\ "; // search for files containing markdown headers
+
+  const cmd = [
+    "grep",
+    "--ignore-case",
+    "--binary-files=without-match",
+    "--line-number",
+    "--recursive",
+    "--basic-regexp",
+    "--include=*.md",
+    "--exclude-dir=*.cache*",
+    query,
+    directory,
+  ];
+  pipe.debug("Running command: " + cmd);
+
+  const job = Deno.run({
+    cmd: cmd,
+    stdout: "piped",
+    stderr: "null",
+  });
+
+  const { _code } = await job.status();
+  const rawOutput = await job.output();
+  const output = new TextDecoder().decode(rawOutput);
+  pipe.debug("Got the following results number:" + output.split("\n").length);
+  const remoteOutput = output.split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line != "")
+    .map((line) =>
+      args.host + args.baseUrl + "/" + line.substring(directory.length)
+    )
+    .join("\n");
+
+  pipe.info(`Returning grep command results`);
+  message.reply.body = remoteOutput;
+  message.reply.type = undefined;
+  message.reply.returnCode = 200;
+  return message;
 }
 
 function postProcessIncludes(
