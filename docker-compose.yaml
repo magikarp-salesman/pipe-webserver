@@ -4,7 +4,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.example10
-        restart: always
+        restart: unless-stopped
         ports: 
             - "8000:8000"
             - "9000:9000"
@@ -17,7 +17,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.puppeteer
-        restart: always
+        restart: unless-stopped
         networks:
             pipe:
                 ipv4_address: 10.5.0.10
@@ -25,7 +25,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.vim
-        restart: always
+        restart: unless-stopped
         networks:
             pipe:
                 ipv4_address: 10.5.0.20

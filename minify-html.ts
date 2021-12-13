@@ -1,10 +1,10 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
+  api_pipeserver_v0_3,
   getCommandLineArgs,
+  minifyHTML,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
-import { minifyHTML } from "https://deno.land/x/minifier@v1.1.1/mod.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   minifyCSS: true,

@@ -1,10 +1,9 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
 import {
+  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   url: "/gotty",

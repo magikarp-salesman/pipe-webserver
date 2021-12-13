@@ -1,16 +1,16 @@
-import { api_pipeserver_v0_1 } from "./api/api_v0_1.ts";
 import {
+  api_pipeserver_v0_1,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   filterUrl: "/api",
 });
 
 const filterMessages = async (
-  message: api_pipeserver_v0_1,
+  message: api_pipeserver,
   pipe: PipeFunctions,
 ) => {
   // forward message only if url is allowed

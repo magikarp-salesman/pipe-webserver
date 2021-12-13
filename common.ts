@@ -1,14 +1,14 @@
-import { parse } from "https://deno.land/std@0.97.0/flags/mod.ts";
-import { api_pipeserver } from "./api/api_v0_1.ts";
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
-import { readLines } from "https://deno.land/std@0.97.0/io/bufio.ts";
-import { v4 } from "https://deno.land/std@0.97.0/uuid/mod.ts";
 import {
+  api_pipeserver,
+  api_pipeserver_v0_3,
+  api_pipeserver_v0_3_cache,
+  base64,
+  parse,
+  readLines,
   Server,
   ServerRequest,
-} from "https://deno.land/std@0.97.0/http/server.ts";
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
+  uuid,
+} from "./dependencies.ts";
 
 type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
 
@@ -97,14 +97,14 @@ async function convertToInternalMessage(
 
   let newRequest: api_pipe_server_combo = {
     version: 0.3,
-    uuid: v4.generate(),
+    uuid: uuid.generate(),
     request: {
       url: req.url,
       method: req.method.toLowerCase(),
       authorization: req.headers.get("Authorization") ?? undefined,
       ip: (req.conn.remoteAddr as Deno.NetAddr).hostname,
       userAgent: convertToUserAgent(req.headers?.get("User-Agent")),
-      payload: base64.fromUint8Array(requestBodyBuffer),
+      payload: base64.encode(requestBodyBuffer),
       cacheKeyMatch: req.headers.get("If-None-Match") ?? undefined,
     },
     reply: {

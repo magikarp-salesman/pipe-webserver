@@ -1,9 +1,10 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
+  api_pipeserver_v0_3,
+  base64,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 /*
   TODO:
@@ -20,7 +21,7 @@ const args = getCommandLineArgs({
   embeddedYoutubeLinks: true,
 });
 
-const markdownToHtmlHandler = async (
+const markdownToHtmlHandler = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
@@ -233,18 +234,12 @@ const htmlTemplate = (markdown: string) =>
 </head>
 <body>
 <pre id="markdown-source" style="display:none">${
-    toBase64Unicode(markdown)
+    base64.encodeUnicode(markdown)
   }</pre>
 <div id="markdown-body" class="markdown-body"></div>
 </body>
 </html>
 `;
-
-const toBase64Unicode = (str: string) =>
-  btoa(
-    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) =>
-      String.fromCharCode(parseInt("0x" + p1))),
-  );
 
 processPipeMessages<api_pipeserver_v0_3>(
   markdownToHtmlHandler,

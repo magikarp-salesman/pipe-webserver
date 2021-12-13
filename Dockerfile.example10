@@ -4,16 +4,16 @@ RUN mkdir -p build build/api
 COPY *.ts build/
 COPY api/*.ts build/api/
 RUN cd build && \
-    deno bundle receiver.ts > receiver.js.bundle && \
-    deno bundle emmiter.ts > emmiter.js.bundle && \
-    deno bundle timed-basic-auth.ts > timed-basic-auth.js.bundle && \
+    deno bundle --unstable receiver.ts > receiver.js.bundle && \
+    deno bundle --unstable emmiter.ts > emmiter.js.bundle && \
+    deno bundle --unstable timed-basic-auth.ts > timed-basic-auth.js.bundle && \
     deno bundle --unstable vim-editor.ts > vim-editor.js.bundle && \
-    deno bundle markdown-to-html.ts > markdown-to-html.js.bundle && \
-    deno bundle minify-html.ts > minify-html.js.bundle && \
-    deno bundle blog.ts > blog.js.bundle && \
-    deno bundle cache.ts > cache.js.bundle && \
-    deno bundle youtube-cache.ts > youtube-cache.js.bundle && \
-    deno bundle gotty-server.ts > gotty-server.js.bundle && \
+    deno bundle --unstable markdown-to-html.ts > markdown-to-html.js.bundle && \
+    deno bundle --unstable minify-html.ts > minify-html.js.bundle && \
+    deno bundle --unstable blog.ts > blog.js.bundle && \
+    deno bundle --unstable cache.ts > cache.js.bundle && \
+    deno bundle --unstable youtube-cache.ts > youtube-cache.js.bundle && \
+    deno bundle --unstable gotty-server.ts > gotty-server.js.bundle && \
     deno bundle --unstable ssr-html-page.ts > ssr-html-page.js.bundle
 
 FROM golang as golangbuilder
@@ -68,5 +68,5 @@ EXPOSE 8000
 EXPOSE 9000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
 # CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
-CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | cache | minify-html | emmiter "]
+CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
 # CMD [" receiver |  | emmiter "]

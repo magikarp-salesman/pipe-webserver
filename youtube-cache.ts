@@ -1,9 +1,9 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
+  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   targetLocation: ".youtube_cache/",
@@ -16,9 +16,10 @@ const args = getCommandLineArgs({
     - better link regexp
     - better name handling (run youtubedr info first)
     - videos by folder/subfolder
+    - run the downloader without checking for the certificates
 */
 
-const youtubeCacheHandler = async (
+const youtubeCacheHandler = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {

@@ -1,13 +1,13 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
-import { ensureDirSync } from "https://deno.land/std@0.97.0/fs/mod.ts";
 import {
+  api_pipeserver_v0_3,
+  api_pipeserver_v0_3_cache,
+  base64,
+  ensureDirSync,
+  firstBy,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
-import { firstBy } from "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
@@ -21,7 +21,7 @@ type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
   TODO:
   - Need a way to upload files/images easily (drop unto page for upload?)
   - Need a way to download files instead of including them
-  - Download as zip
+  - Download as zip ( separate pipeline function )
   - Go/update into zips
   - Include encrypted file
   - A cache system by passing the info to fill ETag value
@@ -42,7 +42,7 @@ const vimEditorHandler = async (
   if (
     !requestPath.startsWith(args.baseUrl) ||
     !(requestPath.endsWith(".md") || requestPath.endsWith("/") ||
-      grepQuery !== undefined)
+      grepQuery != undefined)
   ) {
     return message; // forward the message
   }
@@ -186,7 +186,7 @@ async function handleShowRawFile(
     if (stat.isDirectory) return handleShowRawDirectory(message, pipe, path);
 
     const fileData = await Deno.readFile(path);
-    message.reply.body = base64.fromUint8Array(fileData);
+    message.reply.body = base64.encode(fileData);
     message.reply.type = "base64";
     message.reply.returnCode = 200;
     return message;
@@ -264,8 +264,10 @@ async function handleShowRawDirectory(
   ${fileLinks}
   
   " search by grep
-  :set grepprg=curl\\ --silent\\ ${args.host +
-      args.baseUrl}/?grep=$* | grep! | redraw! | copen
+  :set grepprg=curl\\ --silent\\ ${
+      args.host +
+      args.baseUrl
+    }/?grep=$* | grep! | redraw! | copen
 
   " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
   "
@@ -292,7 +294,7 @@ function handleUpdateFile(
   try {
     const path = args.localFolder +
       message.request.url.substring(args.baseUrl.length);
-    const fileData = base64.toUint8Array(message.request.payload!!);
+    const fileData = base64.decode(message.request.payload!!);
     if (fileData.length > 0) {
       pipe.info(`Updating file ${path}`);
       const directory = path.substring(0, path.lastIndexOf("/"));
@@ -348,7 +350,7 @@ async function handleSearchRequest(
     stderr: "null",
   });
 
-  const { _code } = await job.status();
+  const { code } = await job.status();
   const rawOutput = await job.output();
   const output = new TextDecoder().decode(rawOutput);
   pipe.debug("Got the following results number:" + output.split("\n").length);

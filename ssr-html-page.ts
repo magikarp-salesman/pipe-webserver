@@ -1,15 +1,18 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
+  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 import puppeteer from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
 
 const args = getCommandLineArgs({
   host: "puppeteer",
   port: 9222,
 });
+
+// todo - ignore removing scripts tagged with a special tag
+// todo - remove xhtml comments <!--
 
 const readyScript = `
 <script>

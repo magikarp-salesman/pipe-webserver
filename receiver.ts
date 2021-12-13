@@ -1,16 +1,14 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
 import {
+  api_pipeserver_v0_3,
+  base64,
+  getCommandLineArgs,
+  PipeFunctions,
+  receiverProcessor,
   Response,
   serve,
   Server,
   ServerRequest,
-} from "https://deno.land/std@0.97.0/http/server.ts";
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
-import {
-  getCommandLineArgs,
-  PipeFunctions,
-  receiverProcessor,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   port: 8000,
@@ -30,7 +28,7 @@ function handlerReplies(
   let body: string | Uint8Array = message.reply.body!!;
   if (message.reply.type === "base64") {
     pipe.debug("Converting base64 file...");
-    body = base64.toUint8Array(message.reply.body!!);
+    body = base64.decode(message.reply.body!!);
   }
 
   let newObject: Response = {
@@ -50,7 +48,7 @@ function handlerTimeoutMessages(
   req: ServerRequest,
   pipe: PipeFunctions,
 ) {
-  let response: Response = {
+  const response: Response = {
     status: 408,
   };
   req.respond(response);

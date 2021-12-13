@@ -1,17 +1,17 @@
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
-import { api_pipeserver_v0_2 } from "./api/api_v0_2.ts";
 import {
+  api_pipeserver_v0_2,
+  base64,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   realm: "pipe-server authentication",
   accepted: `pipe:server`,
 });
 
-const basicAuth = async (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
+const basicAuth = (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
   let { authorization } = message.request;
   authorization = authorization ?? "";
 
@@ -21,7 +21,7 @@ const basicAuth = async (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
     message.reply.headers["WWW-Authenticate"] = `Basic realm="${args.realm}"`;
   } else {
     let decodedAuthorization = (new TextDecoder("utf8")).decode(
-      base64.toUint8Array(authorization.substring(6)),
+      base64.decode(authorization.substring(6)),
     );
     if (decodedAuthorization != args.accepted) {
       message.reply.returnCode = 403;

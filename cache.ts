@@ -1,11 +1,11 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
 import {
+  api_pipeserver_v0_3,
+  api_pipeserver_v0_3_cache,
   getCommandLineArgs,
+  md5,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
-import { createHash } from "https://deno.land/std@0.103.0/hash/mod.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   cacheControl: "no-cache",
@@ -13,7 +13,7 @@ const args = getCommandLineArgs({
 
 type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
 
-const cacheHandler = async (
+const cacheHandler = (
   message: api_pipe_server_combo,
   pipe: PipeFunctions,
 ) => {
@@ -36,12 +36,6 @@ const cacheHandler = async (
   }
 
   return message;
-};
-
-const md5 = (value: any) => {
-  const hash = createHash("md5");
-  hash.update(value);
-  return hash.toString();
 };
 
 processPipeMessages<api_pipe_server_combo>(

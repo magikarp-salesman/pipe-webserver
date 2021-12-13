@@ -1,11 +1,14 @@
-import { api_pipeserver_v0_1 } from "./api/api_v0_1.ts";
-import { getCommandLineArgs, processPipeMessages } from "./common.ts";
+import {
+  api_pipeserver_v0_1,
+  getCommandLineArgs,
+  processPipeMessages,
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   reply: `<html><h1>Hello World!</h1></html>`,
 });
 
-const helloWorld = async (
+const helloWorld = (
   message: api_pipeserver_v0_1,
 ) => {
   if (!message.reply.body) {

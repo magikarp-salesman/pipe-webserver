@@ -1,11 +1,11 @@
-import { api_pipeserver_v0_3 } from "./api/api_v0_3.ts";
-import { api_pipeserver_v0_3_cache } from "./api/api_v0_3_cache.ts";
 import {
+  api_pipeserver_v0_3,
+  api_pipeserver_v0_3_cache,
+  base64,
   getCommandLineArgs,
   PipeFunctions,
   processPipeMessages,
-} from "./common.ts";
-import * as base64 from "https://denopkg.com/chiefbiiko/base64/mod.ts";
+} from "./dependencies.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
@@ -36,7 +36,7 @@ const blogHandler = async (
         message.reply.body = new TextDecoder("utf-8").decode(fileData);
         message.reply.type = "html";
       } else {
-        message.reply.body = base64.fromUint8Array(fileData);
+        message.reply.body = base64.encode(fileData);
         message.reply.type = "base64";
       }
     } else {
