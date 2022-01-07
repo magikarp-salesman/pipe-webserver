@@ -14,7 +14,7 @@ const args = getCommandLineArgs({
 
 const allowedIpAddresses: Map<string, number> = new Map<string, number>();
 
-const basicAuth = async (message: api_pipeserver_v0_3, pipe: PipeFunctions) => {
+const basicAuth = (message: api_pipeserver_v0_3, pipe: PipeFunctions) => {
   let { authorization, ip } = message.request;
   authorization = authorization ?? "";
   ip = ip ?? "";
@@ -38,7 +38,7 @@ const basicAuth = async (message: api_pipeserver_v0_3, pipe: PipeFunctions) => {
     return message;
   }
 
-  let decodedAuthorization = (new TextDecoder("utf8")).decode(
+  const decodedAuthorization = (new TextDecoder("utf8")).decode(
     base64.decode(authorization.substring(6)),
   );
   if (decodedAuthorization != args.accepted) {

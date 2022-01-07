@@ -25,20 +25,20 @@ function handlerReplies(
   req: ServerRequest,
   pipe: PipeFunctions,
 ) {
-  let body: string | Uint8Array = message.reply.body!!;
+  let body: string | Uint8Array = message.reply.body!;
   if (message.reply.type === "base64") {
     pipe.debug("Converting base64 file...");
-    body = base64.decode(message.reply.body!!);
+    body = base64.decode(message.reply.body!);
   }
 
-  let newObject: Response = {
+  const newObject: Response = {
     body,
     status: message.reply.returnCode ?? 200,
     headers: new Headers(),
   };
 
   Object.entries(message.reply.headers).forEach((item: [string, unknown]) => {
-    newObject.headers!!.append(item[0], String(item[1]));
+    newObject.headers!.append(item[0], String(item[1]));
   });
   req.respond(newObject);
 }

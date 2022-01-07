@@ -10,7 +10,7 @@ const args = getCommandLineArgs({
   port: 8000,
 });
 
-const emmitMessage = async (
+const emmitMessage = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {

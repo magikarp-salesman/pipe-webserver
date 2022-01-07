@@ -11,7 +11,9 @@ const args = getCommandLineArgs({
   minifyJS: true,
 });
 
-const minifyHtmlHandler = async (
+// TODO: skip if error while minimizing
+
+const minifyHtmlHandler = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
@@ -21,13 +23,13 @@ const minifyHtmlHandler = async (
   }
 
   // minify code
-  let previousSize = message.reply.body.length;
-  let minifiedBody = minifyHTML(message.reply.body, {
+  const previousSize = message.reply.body.length;
+  const minifiedBody = minifyHTML(message.reply.body, {
     minifyCSS: args.minifyCSS,
     minifyJS: args.minifyJS,
   });
-  let newSize = minifiedBody.length;
-  let percentage = (100 - ((newSize * 100) / previousSize)).toPrecision(2);
+  const newSize = minifiedBody.length;
+  const percentage = (100 - ((newSize * 100) / previousSize)).toPrecision(2);
   message.reply.body = minifiedBody;
 
   pipe.debug(`Size reduced: ${percentage}%`);

@@ -20,7 +20,7 @@ const basicAuth = (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
     message.reply.returnCode = 401;
     message.reply.headers["WWW-Authenticate"] = `Basic realm="${args.realm}"`;
   } else {
-    let decodedAuthorization = (new TextDecoder("utf8")).decode(
+    const decodedAuthorization = (new TextDecoder("utf8")).decode(
       base64.decode(authorization.substring(6)),
     );
     if (decodedAuthorization != args.accepted) {

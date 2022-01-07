@@ -20,7 +20,7 @@ FROM golang as golangbuilder
 
 WORKDIR /root
 RUN git clone https://github.com/kkdai/youtube.git && cd youtube && go build -o /root/youtubedr ./cmd/youtubedr
-RUN wget https://github.com/yudai/gotty/releases/download/v1.0.1/gotty_linux_amd64.tar.gz && tar -xvf gotty_linux_amd64.tar.gz
+RUN wget https://github.com/sorenisanerd/gotty/releases/download/v1.3.0/gotty_v1.3.0_linux_amd64.tar.gz && tar -xvf gotty_v1.3.0_linux_amd64.tar.gz
 
 FROM denoland/deno:1.15.3 as runner
 
@@ -33,7 +33,11 @@ COPY id_rsa /root/.ssh/id_rsa
 RUN chmod 0600 /root/.ssh/id_rsa
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
-    ssh
+    ssh \ 
+    locales
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 COPY --from=build build/receiver.js.bundle receiver.js
 COPY --from=build build/emmiter.js.bundle emmiter.js
@@ -68,5 +72,5 @@ EXPOSE 8000
 EXPOSE 9000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
 # CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
-CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
+CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | cache | minify-html | emmiter "]
 # CMD [" receiver |  | emmiter "]

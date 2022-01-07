@@ -6,7 +6,11 @@ RUN apt-get -qq update \
     vim \
     ca-certificates \
     git \
-    ssh
+    ssh \ 
+    locales
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 WORKDIR /root
 

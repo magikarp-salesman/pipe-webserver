@@ -269,10 +269,11 @@ async function handleShowRawDirectory(
       args.baseUrl
     }/?grep=$* | grep! | redraw! | copen
 
-  " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
-  "
   " helpful commands:
   " :nnoremap <leader>el yy:@"<CR>
+  " :nnoremap <leader>ol yiW:!open <C-R>"<CR>
+  "
+  " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
   `);
 
     pipe.info(`Reading raw directory listing`);
@@ -324,7 +325,8 @@ async function handleSearchRequest(
   query: string,
 ) {
   const url = message.request.url.split("?")[0];
-  const path = args.localFolder + url.substring(args.baseUrl.length);
+  const relativePath = url.substring(args.baseUrl.length);
+  const path = args.localFolder + relativePath;
   const directory = path;
   pipe.info(`Making search in directory ${path}`);
 
@@ -358,7 +360,8 @@ async function handleSearchRequest(
     .map((line) => line.trim())
     .filter((line) => line != "")
     .map((line) =>
-      args.host + args.baseUrl + "/" + line.substring(directory.length)
+      args.host + args.baseUrl + "/" + relativePath + "/" +
+      line.substring(directory.length)
     )
     .join("\n");
 

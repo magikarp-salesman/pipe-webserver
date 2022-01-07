@@ -12,7 +12,7 @@ const args = getCommandLineArgs({
   base64encoded: true,
 });
 
-const filterMessages = async (
+const filterMessages = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {

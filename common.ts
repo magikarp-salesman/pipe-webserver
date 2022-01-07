@@ -7,7 +7,7 @@ import {
   readLines,
   Server,
   ServerRequest,
-  uuid,
+  utils,
 } from "./dependencies.ts";
 
 type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
@@ -21,10 +21,7 @@ export type PipeFunctions = {
 };
 
 const pipeFunctions = (moduleName: string): PipeFunctions => {
-  const paddedModuleName = moduleName.toLowerCase().substr(0, 20).padStart(
-    20,
-    " ",
-  );
+  const paddedModuleName = utils.paddedLowercase()(moduleName);
   return {
     message: sendPipeMessage(paddedModuleName),
     info: sendPipeInfo(paddedModuleName),
@@ -48,34 +45,33 @@ export const sendPipeMessage = (_moduleName: string) =>
 
 export const sendPipeInfo = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage: string = `ℹ️  [info ][${moduleName}] ${message}\n`;
+    const finalMessage = `ℹ️ [info ][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeWarn = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage: string = `⚠  [warn ][${moduleName}] ${message}\n`;
+    const finalMessage = `⚠  [warn ][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeDebug = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage: string = `🐛 [debug][${moduleName}] ${message}\n`;
+    const finalMessage = `🐛 [debug][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeError = (moduleName: string) =>
   async (message: string, error?: any) => {
     const errorMessage = error ? ` (${error})` : "";
-    const finalMessage: string =
-      `🔥 [error][${moduleName}] ${message}${errorMessage}\n`;
+    const finalMessage = `🔥 [error][${moduleName}] ${message}${errorMessage}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export async function processPipeMessages<T>(
   handler: (message: T, pipe: PipeFunctions) => any,
   moduleName: string,
-  startMessage: string = `Started handler...`,
+  startMessage = `Started handler...`,
 ) {
   const pipe = pipeFunctions(moduleName);
   pipe.debug(startMessage);
@@ -95,9 +91,9 @@ async function convertToInternalMessage(
 ): Promise<api_pipe_server_combo> {
   const requestBodyBuffer: Uint8Array = await Deno.readAll(req.body);
 
-  let newRequest: api_pipe_server_combo = {
+  const newRequest: api_pipe_server_combo = {
     version: 0.3,
-    uuid: uuid.generate(),
+    uuid: utils.uuid.generate(),
     request: {
       url: req.url,
       method: req.method.toLowerCase(),
@@ -151,8 +147,8 @@ export async function receiverProcessor(
     pipe: PipeFunctions,
   ) => any,
   server: Server,
-  moduleName: string = "receiver",
-  startMessage: string = `Started handler...`,
+  moduleName = "receiver",
+  startMessage = `Started handler...`,
 ) {
   const pipe = pipeFunctions(moduleName);
   pipe.debug(startMessage);
@@ -161,7 +157,7 @@ export async function receiverProcessor(
       // read the reply request
       readReply<api_pipeserver_v0_3>(req).then((msg: api_pipeserver_v0_3) => {
         pipe.debug(`Sending reply...`);
-        const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!!;
+        const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!;
         if (reqObject) {
           handlerReplies(msg, reqObject, pipe);
           requests.delete(msg.uuid);
@@ -174,7 +170,7 @@ export async function receiverProcessor(
     } else {
       // handle the new request
       pipe.debug(`Received request`);
-      let ndjson: api_pipeserver_v0_3 = await convertToInternalMessage(req);
+      const ndjson: api_pipeserver_v0_3 = await convertToInternalMessage(req);
       requests.set(ndjson.uuid, req);
       handlerNewMessages(ndjson, pipe);
     }

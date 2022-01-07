@@ -9,8 +9,8 @@ const args = getCommandLineArgs({
   filterUrl: "/api",
 });
 
-const filterMessages = async (
-  message: api_pipeserver,
+const filterMessages = (
+  message: api_pipeserver_v0_1,
   pipe: PipeFunctions,
 ) => {
   // forward message only if url is allowed

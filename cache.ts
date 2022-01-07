@@ -2,9 +2,9 @@ import {
   api_pipeserver_v0_3,
   api_pipeserver_v0_3_cache,
   getCommandLineArgs,
-  md5,
   PipeFunctions,
   processPipeMessages,
+  utils,
 } from "./dependencies.ts";
 
 const args = getCommandLineArgs({
@@ -20,7 +20,7 @@ const cacheHandler = (
   // if we have a cache key set add the headers to the file
 
   if (message.reply.cacheKey) {
-    const hash = md5(message.reply.cacheKey);
+    const hash = utils.md5(message.reply.cacheKey);
 
     if (message.request.cacheKeyMatch == hash) {
       pipe.info("Cache hit, returning 304");

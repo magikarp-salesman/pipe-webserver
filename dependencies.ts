@@ -28,11 +28,10 @@ export { parse } from "https://deno.land/std@0.97.0/flags/mod.ts";
 export { ensureDirSync } from "https://deno.land/std@0.97.0/fs/mod.ts";
 export { readLines } from "https://deno.land/std@0.97.0/io/bufio.ts";
 export { minifyHTML } from "https://deno.land/x/minifier@v1.1.1/mod.ts";
-export { v4 as uuid } from "https://deno.land/std@0.97.0/uuid/mod.ts";
+import { v4 as uuid } from "https://deno.land/std@0.97.0/uuid/mod.ts";
 export { firstBy } from "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts";
 
-export const md5 = (value: string) =>
-  createHash("md5").update(value).toString();
+// util objects
 
 export const base64 = {
   encode,
@@ -41,5 +40,16 @@ export const base64 = {
     btoa(
       encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_match, p1) =>
         String.fromCharCode(parseInt("0x" + p1))),
-    ),
+    ), // https://attacomsian.com/blog/javascript-base64-encode-decode
+};
+
+export const utils = {
+  uuid,
+  md5: (value: string) => createHash("md5").update(value).toString(),
+  paddedLowercase: (size = 20, filler = " ") =>
+    (value: string) =>
+      value.toLowerCase().substr(0, size).padStart(
+        size,
+        filler,
+      ),
 };

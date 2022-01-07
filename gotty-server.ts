@@ -14,7 +14,14 @@ const args = getCommandLineArgs({
   gottyCommand: "sh",
 });
 
-const gottyServer = async (
+let isRunning = false;
+
+// TODO: move html to it's own file or pipeline stage
+// do not start gotty if one server is already up and running (responsive)
+//   - also do not do the redirect wait if so
+//   - figure out the special characters
+
+const gottyServer = (
   message: api_pipeserver_v0_3,
   pipe: PipeFunctions,
 ) => {
@@ -24,38 +31,51 @@ const gottyServer = async (
   // forward message if it is already resolved
   if (message.reply.returnCode !== undefined) return message;
 
-  startGottyServer(pipe);
+  if (!isRunning) startGottyServer(pipe);
 
-  // redirect to the gotty port
+  // show main page
+  return mainPage(message, pipe);
+};
+
+function mainPage(message: api_pipeserver_v0_3, pipe: PipeFunctions) {
+  pipe.info("Replying with main page");
+
+  const redirectDelay = isRunning ? 0 : 1500;
+
   message.reply.returnCode = 200;
-  message.reply.body = `<!DOCTYPE html>
-<html>
-<body>
-<script>
+  message.reply.type = "html";
+  message.reply.body = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+	<title>redirecting...</title>
+
+  <script>
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function redirect() {
-    await sleep(1500);
+    await sleep(${redirectDelay});
     const redirect = window.location.protocol + "//" + window.location.hostname + ":${args.gottyPort}" + "/";
     window.location.replace(redirect);    
 }
 
 redirect();
-
 </script>
-
-</body>
-</html>`;
-  message.reply.type = "html";
+  </head>
+  <body>
+    <p>Loading...</p>
+  </body>
+  </html>
+  `;
 
   return message;
-};
+}
 
 async function startGottyServer(pipe: PipeFunctions) {
-  pipe.info("Starting GoTTY Server");
+  pipe.info("Starting GoTTY Server...");
   const cmd = [args.executable].concat(
     args.gottyOptions,
     args.gottyCommand.split(" "),
@@ -65,11 +85,13 @@ async function startGottyServer(pipe: PipeFunctions) {
     stdout: "null",
     stderr: "piped",
   });
+  isRunning = true;
   await waitForCompletion(pipe, job);
 }
 
 async function waitForCompletion(pipe: PipeFunctions, job: any) {
   const status = await job.status();
+  isRunning = false;
   if (status.code != 0) {
     const rawError = await job.stderrOutput();
     const errorString = new TextDecoder().decode(rawError);
