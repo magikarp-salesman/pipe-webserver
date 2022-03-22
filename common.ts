@@ -76,13 +76,22 @@ export async function processPipeMessages<T>(
   const pipe = pipeFunctions(moduleName);
   pipe.debug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
+    let message, reply;
     try {
-      const message: T = JSON.parse(line);
-      const reply = await handler(message, pipe);
-      if (reply) pipe.message(reply);
+      message = JSON.parse(line);
     } catch (error) {
       pipe.error("Could not parse NDJSON", error);
+      pipe.error(line);
+      return;
     }
+    try {
+      reply = await handler(message, pipe);
+    } catch (error) {
+      pipe.error("Internal error ", error);
+      pipe.debug("Forwarding original message...");
+      pipe.message(message);
+    }
+    if (reply) pipe.message(reply);
   }
 }
 

@@ -3,13 +3,13 @@ services:
     application:
         build:
             context: .
-            dockerfile: Dockerfile.example10
+            dockerfile: Dockerfile.magikarp
         restart: unless-stopped
         ports: 
-            - "8000:8000"
-            - "9000:9000"
+            - "80:80"
+            - "9000:9000" # gotty port
         volumes:
-            - "./my_docs:/root/docs"
+            - "/media/storage/docs:/root/docs"
         networks:
             pipe:
                 ipv4_address: 10.5.0.2
@@ -26,6 +26,10 @@ services:
             context: .
             dockerfile: Dockerfile.vim
         restart: unless-stopped
+        volumes:
+            - "/media/storage/docs/editor:/root/editor"
+        extra_hosts:
+                - "magikarp.sale:10.5.0.2"
         networks:
             pipe:
                 ipv4_address: 10.5.0.20
