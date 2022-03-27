@@ -1,9 +1,9 @@
-export interface api_pipeserver {
+export interface PipeServerAPI {
   version: number;
   uuid: string;
 }
 
-export interface api_pipeserver_v0_1 extends api_pipeserver {
+export interface PipeServerAPIv01 extends PipeServerAPI {
   version: 0.1;
 
   request: {

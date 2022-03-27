@@ -1,6 +1,6 @@
-import { api_pipeserver } from "./api_v0_1.ts";
+import { PipeServerAPI } from "./api_v0_1.ts";
 
-export interface api_pipeserver_v0_2 extends api_pipeserver {
+export interface PipeServerAPIv02 extends PipeServerAPI {
   version: 0.2;
 
   request: {

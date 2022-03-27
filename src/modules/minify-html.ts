@@ -1,10 +1,10 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   minifyHTML,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   minifyCSS: true,
@@ -14,12 +14,12 @@ const args = getCommandLineArgs({
 // TODO: skip if error while minimizing
 
 const minifyHtmlHandler = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   // we only care about messages that already contain type=html
   if (message.reply.type !== "html" || message.reply.body === undefined) {
-    return message;
+    return Promise.resolve(message);
   }
 
   // minify code
@@ -33,10 +33,10 @@ const minifyHtmlHandler = (
   message.reply.body = minifiedBody;
 
   pipe.debug(`Size reduced: ${percentage}%`);
-  return message;
+  return Promise.resolve(message);
 };
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   minifyHtmlHandler,
   "minify-html",
 );

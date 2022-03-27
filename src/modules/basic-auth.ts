@@ -1,17 +1,17 @@
 import {
-  api_pipeserver_v0_2,
   base64,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv02,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   realm: "pipe-server authentication",
   accepted: `pipe:server`,
 });
 
-const basicAuth = (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
+const basicAuth = (message: PipeServerAPIv02, pipe: PipeFunctions) => {
   let { authorization } = message.request;
   authorization = authorization ?? "";
 
@@ -34,6 +34,6 @@ const basicAuth = (message: api_pipeserver_v0_2, pipe: PipeFunctions) => {
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_2>(basicAuth, "basic-auth");
+processPipeMessages<PipeServerAPIv02>(basicAuth, "basic-auth");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

@@ -1,9 +1,9 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   server: `localhost`,
@@ -11,7 +11,7 @@ const args = getCommandLineArgs({
 });
 
 const emmitMessage = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   fetch(`http://${args.server}:${args.port}/reply`, {
@@ -22,7 +22,7 @@ const emmitMessage = (
     body: JSON.stringify(message),
   })
     .then((response) => response.json())
-    .then((data) => {
+    .then((_data) => {
       // console.log('Success:', data);
     })
     .catch((error) => {
@@ -30,7 +30,7 @@ const emmitMessage = (
     });
 };
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   emmitMessage,
   "emmiter",
   "Initialized...",

@@ -1,19 +1,18 @@
 import {
-  api_pipeserver,
-  api_pipeserver_v0_3,
-  api_pipeserver_v0_3_cache,
   base64,
   parse,
+  PipeServerAPI,
+  PipeServerAPIv03,
+  PipeServerAPIv03Cache,
   readLines,
-  Server,
-  ServerRequest,
+  urlParse,
   utils,
 } from "./dependencies.ts";
 
-type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
 
 export type PipeFunctions = {
-  message: (message: api_pipeserver) => void;
+  message: (message: PipeServerAPI) => void;
   info: (message: string) => void;
   warn: (message: string) => void;
   error: (message: string, error?: any) => void;
@@ -39,7 +38,7 @@ export function getCommandLineArgs(defaults: Record<string, unknown>) {
 }
 
 export const sendPipeMessage = (_moduleName: string) =>
-  (message: api_pipeserver) => {
+  (message: PipeServerAPI) => {
     console.log(JSON.stringify(message));
   };
 
@@ -69,7 +68,10 @@ export const sendPipeError = (moduleName: string) =>
   };
 
 export async function processPipeMessages<T>(
-  handler: (message: T, pipe: PipeFunctions) => any,
+  handler: (
+    message: T,
+    pipe: PipeFunctions,
+  ) => Promise<PipeServerAPI> | PipeServerAPI | undefined | void,
   moduleName: string,
   startMessage = `Started handler...`,
 ) {
@@ -91,26 +93,35 @@ export async function processPipeMessages<T>(
       pipe.debug("Forwarding original message...");
       pipe.message(message);
     }
-    if (reply) pipe.message(reply);
+    if (reply) {
+      pipe.message(reply);
+    } else {
+      pipe.debug("Dropped message...");
+    }
   }
 }
 
 async function convertToInternalMessage(
-  req: ServerRequest,
-): Promise<api_pipe_server_combo> {
-  const requestBodyBuffer: Uint8Array = await Deno.readAll(req.body);
+  req: Deno.RequestEvent,
+  conn: Deno.Conn,
+): Promise<PipeServerAPICombo> {
+  const requestBodyBuffer = await utils.readableStreamToUint8Array(
+    req.request.body,
+  );
 
-  const newRequest: api_pipe_server_combo = {
+  const parsedUrl = urlParse(req.request.url);
+
+  const newRequest: PipeServerAPICombo = {
     version: 0.3,
     uuid: utils.uuid.generate(),
     request: {
-      url: req.url,
-      method: req.method.toLowerCase(),
-      authorization: req.headers.get("Authorization") ?? undefined,
-      ip: (req.conn.remoteAddr as Deno.NetAddr).hostname,
-      userAgent: convertToUserAgent(req.headers?.get("User-Agent")),
+      url: parsedUrl.pathname,
+      method: req.request.method.toLowerCase(),
+      authorization: req.request.headers.get("Authorization") ?? undefined,
+      ip: (conn.remoteAddr as Deno.NetAddr).hostname,
+      userAgent: convertToUserAgent(req.request.headers?.get("User-Agent")),
       payload: base64.encode(requestBodyBuffer),
-      cacheKeyMatch: req.headers.get("If-None-Match") ?? undefined,
+      cacheKeyMatch: req.request.headers.get("If-None-Match") ?? undefined,
     },
     reply: {
       headers: {},
@@ -127,46 +138,51 @@ function convertToUserAgent(
   return "other";
 }
 
-const requests: Map<string, ServerRequest> = new Map();
+const requests: Map<string, Deno.RequestEvent> = new Map();
 const isReply = (
-  req: ServerRequest,
-): boolean => (req.url === `/reply` && req.method === `POST`);
+  req: Deno.RequestEvent,
+): boolean => (urlParse(req.request.url).pathname === `/reply` &&
+  req.request.method === `POST`);
 
-async function readReply<T extends api_pipeserver>(
-  req: ServerRequest,
+async function readReply<T extends PipeServerAPI>(
+  req: Deno.RequestEvent,
 ): Promise<T> {
-  const buf = await Deno.readAll(req.body);
-  const body = new TextDecoder("utf-8").decode(buf);
+  const requestBodyBuffer = utils.readableStreamToUint8Array(req.request.body);
+  const body = await utils.Uint8ArrayToString(requestBodyBuffer);
   return JSON.parse(body);
 }
 
 export async function receiverProcessor(
   handlerNewMessages: (
-    message: api_pipeserver_v0_3,
+    message: PipeServerAPIv03,
     pipe: PipeFunctions,
-  ) => any,
+  ) => void,
   handlerReplies: (
-    message: api_pipeserver_v0_3,
-    req: ServerRequest,
+    message: PipeServerAPIv03,
+    req: Deno.RequestEvent,
     pipe: PipeFunctions,
-  ) => any,
+  ) => void,
   handlerTimeoutMessages: (
-    message: api_pipeserver_v0_3,
-    req: ServerRequest,
+    message: PipeServerAPIv03,
+    req: Deno.RequestEvent,
     pipe: PipeFunctions,
-  ) => any,
-  server: Server,
+  ) => void,
+  server: Deno.Listener,
   moduleName = "receiver",
   startMessage = `Started handler...`,
 ) {
   const pipe = pipeFunctions(moduleName);
   pipe.debug(startMessage);
-  for await (const req of server) {
+
+  // handles the request itself
+  const reqHandler = async (req: Deno.RequestEvent, conn: Deno.Conn) => {
     if (isReply(req)) {
       // read the reply request
-      readReply<api_pipeserver_v0_3>(req).then((msg: api_pipeserver_v0_3) => {
+      readReply<PipeServerAPIv03>(req).then((msg: PipeServerAPIv03) => {
         pipe.debug(`Sending reply...`);
-        const reqObject: ServerRequest | undefined = requests.get(msg.uuid)!;
+        const reqObject: Deno.RequestEvent | undefined = requests.get(
+          msg.uuid,
+        )!;
         if (reqObject) {
           handlerReplies(msg, reqObject, pipe);
           requests.delete(msg.uuid);
@@ -179,10 +195,26 @@ export async function receiverProcessor(
     } else {
       // handle the new request
       pipe.debug(`Received request`);
-      const ndjson: api_pipeserver_v0_3 = await convertToInternalMessage(req);
+      const ndjson: PipeServerAPIv03 = await convertToInternalMessage(
+        req,
+        conn,
+      );
       requests.set(ndjson.uuid, req);
       handlerNewMessages(ndjson, pipe);
     }
+  };
+
+  // handles http requests
+  const httpHandler = async (conn: Deno.Conn) => {
+    const httpConn = Deno.serveHttp(conn);
+    for await (const requestEvent of httpConn) {
+      reqHandler(requestEvent, conn);
+    }
+  };
+
+  // handles connections
+  for await (const conn of server) {
+    httpHandler(conn);
   }
 }
 

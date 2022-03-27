@@ -1,13 +1,13 @@
 import {
-  api_pipeserver_v0_3,
-  api_pipeserver_v0_3_cache,
   base64,
   ensureDirSync,
   firstBy,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
+  PipeServerAPIv03Cache,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
@@ -15,7 +15,7 @@ const args = getCommandLineArgs({
   host: "http://localhost:8000",
 });
 
-type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
 
 /*
   TODO:
@@ -28,7 +28,7 @@ type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
 */
 
 const vimEditorHandler = async (
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) => {
   // we already have a return code so just forward the message
@@ -82,7 +82,7 @@ const vimEditorHandler = async (
 };
 
 async function handleHeadRequest(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) {
   // TODO improve code
@@ -95,7 +95,7 @@ async function handleHeadRequest(
     message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
     return message;
-  } catch (err) {
+  } catch (_err) {
     pipe.info("Could not read file.");
     message.reply.body = "Not found";
     message.reply.returnCode = 404;
@@ -104,7 +104,7 @@ async function handleHeadRequest(
 }
 
 async function handleShowFile(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) {
   try {
@@ -128,7 +128,7 @@ async function handleShowFile(
     message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
     return message;
-  } catch (err) {
+  } catch (_err) {
     pipe.info("Could not read file.");
     message.reply.body = "Not found";
     message.reply.returnCode = 404;
@@ -137,7 +137,7 @@ async function handleShowFile(
 }
 
 async function handleShowDirectory(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
   path: string,
 ) {
@@ -173,7 +173,7 @@ ${fileList}
 }
 
 async function handleShowRawFile(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) {
   try {
@@ -190,7 +190,7 @@ async function handleShowRawFile(
     message.reply.type = "base64";
     message.reply.returnCode = 200;
     return message;
-  } catch (err) {
+  } catch (_err) {
     pipe.info("Could not read file. (creating a new file)");
 
     message.reply.body = `---
@@ -207,7 +207,7 @@ This is a new file
 }
 
 async function handleShowRawDirectory(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
   dir: string,
 ) {
@@ -289,13 +289,13 @@ async function handleShowRawDirectory(
 }
 
 function handleUpdateFile(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) {
   try {
     const path = args.localFolder +
       message.request.url.substring(args.baseUrl.length);
-    const fileData = base64.decode(message.request.payload!!);
+    const fileData = base64.decode(message.request.payload!);
     if (fileData.length > 0) {
       pipe.info(`Updating file ${path}`);
       const directory = path.substring(0, path.lastIndexOf("/"));
@@ -320,7 +320,7 @@ function handleUpdateFile(
 }
 
 async function handleSearchRequest(
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
   query: string,
 ) {
@@ -352,7 +352,7 @@ async function handleSearchRequest(
     stderr: "null",
   });
 
-  const { code } = await job.status();
+  const { code: _code } = await job.status();
   const rawOutput = await job.output();
   const output = new TextDecoder().decode(rawOutput);
   pipe.debug("Got the following results number:" + output.split("\n").length);
@@ -393,7 +393,7 @@ function postProcessIncludes(
   }).join("\n");
 }
 
-processPipeMessages<api_pipe_server_combo>(
+processPipeMessages<PipeServerAPICombo>(
   vimEditorHandler,
   "vim-editor",
 );

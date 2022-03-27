@@ -9,7 +9,7 @@ services:
             - "80:80"
             - "9000:9000" # gotty port
         volumes:
-            - "/media/storage/docs:/root/docs"
+            - "./docs:/root/docs"
         networks:
             pipe:
                 ipv4_address: 10.5.0.2
@@ -27,7 +27,7 @@ services:
             dockerfile: Dockerfile.vim
         restart: unless-stopped
         volumes:
-            - "/media/storage/docs/editor:/root/editor"
+            - "./editor:/root/editor"
         extra_hosts:
                 - "magikarp.sale:10.5.0.2"
         networks:

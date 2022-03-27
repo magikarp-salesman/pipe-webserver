@@ -1,21 +1,21 @@
 import {
-  api_pipeserver_v0_3,
-  api_pipeserver_v0_3_cache,
   base64,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
+  PipeServerAPIv03Cache,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   baseUrl: "/docs",
   localFolder: "./docs",
 });
 
-type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
 
 const blogHandler = async (
-  message: api_pipe_server_combo,
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) => {
   // we already have a return code so just forward the message
@@ -27,6 +27,12 @@ const blogHandler = async (
         message.request.url.substring(args.baseUrl.length);
 
       const isHtml = message.request.url.toLowerCase().endsWith("html");
+
+      const isJpeg = message.request.url.toLowerCase().endsWith("jpg") ||
+        message.request.url.toLowerCase().endsWith("jpeg");
+
+      const isPng = message.request.url.toLowerCase().endsWith("png");
+
       pipe.debug(`Reading file ${path}`);
 
       const fileData = await Deno.readFile(path);
@@ -38,6 +44,8 @@ const blogHandler = async (
       } else {
         message.reply.body = base64.encode(fileData);
         message.reply.type = "base64";
+        if (isJpeg) message.reply.headers["Content-Type"] = "image/jpeg";
+        if (isPng) message.reply.headers["Content-Type"] = "image/png";
       }
     } else {
       message.reply.body = "Not found";
@@ -52,6 +60,6 @@ const blogHandler = async (
   }
 };
 
-processPipeMessages<api_pipe_server_combo>(blogHandler, "blog");
+processPipeMessages<PipeServerAPICombo>(blogHandler, "blog");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

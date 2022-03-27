@@ -1,26 +1,26 @@
 import {
-  api_pipeserver_v0_3,
-  api_pipeserver_v0_3_cache,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
+  PipeServerAPIv03Cache,
   processPipeMessages,
   utils,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   cacheControl: "no-cache",
 });
 
-type api_pipe_server_combo = api_pipeserver_v0_3 & api_pipeserver_v0_3_cache;
+type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
 
-const cacheHandler = (
-  message: api_pipe_server_combo,
+const cacheHandler = async (
+  message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) => {
   // if we have a cache key set add the headers to the file
 
   if (message.reply.cacheKey) {
-    const hash = utils.md5(message.reply.cacheKey);
+    const hash = await utils.md5(message.reply.cacheKey);
 
     if (message.request.cacheKeyMatch == hash) {
       pipe.info("Cache hit, returning 304");
@@ -38,7 +38,7 @@ const cacheHandler = (
   return message;
 };
 
-processPipeMessages<api_pipe_server_combo>(
+processPipeMessages<PipeServerAPICombo>(
   cacheHandler,
   "cache",
 );

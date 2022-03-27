@@ -1,0 +1,22 @@
+FROM denoland/deno:1.20.1 as build
+
+COPY . /root
+WORKDIR /root/src/modules
+RUN deno lint *.ts
+RUN ls -1 *.ts | xargs -I {} deno bundle --unstable {} -- /root/{}.bundle
+
+FROM denoland/deno:1.20.1 as runner
+
+WORKDIR /root
+
+COPY --from=build /root/receiver.ts.bundle receiver.js
+COPY --from=build /root/emmiter.ts.bundle emmiter.js
+COPY --from=build /root/helloworld.ts.bundle helloworld.js
+
+RUN deno install --allow-net=:8000 /root/receiver.js
+RUN deno install /root/helloworld.js
+RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+
+EXPOSE 8000
+ENTRYPOINT [ "/bin/sh" , "-c" ]
+CMD [" receiver | helloworld | emmiter "]

@@ -1,10 +1,10 @@
 import {
-  api_pipeserver_v0_3,
   base64,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 /*
   TODO:
@@ -21,7 +21,7 @@ const args = getCommandLineArgs({
 });
 
 const markdownToHtmlHandler = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   // we only care about messages that already contain type=markdown
@@ -240,7 +240,7 @@ const htmlTemplate = (markdown: string) =>
 </html>
 `;
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   markdownToHtmlHandler,
   "markdown-to-html",
 );

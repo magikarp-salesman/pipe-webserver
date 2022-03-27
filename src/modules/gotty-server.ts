@@ -1,9 +1,9 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   url: "/gotty",
@@ -22,7 +22,7 @@ let isRunning = false;
 //   - figure out the special characters
 
 const gottyServer = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   // forward message only if url does not start with the base url
@@ -37,7 +37,7 @@ const gottyServer = (
   return mainPage(message, pipe);
 };
 
-function mainPage(message: api_pipeserver_v0_3, pipe: PipeFunctions) {
+function mainPage(message: PipeServerAPIv03, pipe: PipeFunctions) {
   pipe.info("Replying with main page");
 
   const redirectDelay = isRunning ? 0 : 1500;
@@ -89,7 +89,7 @@ async function startGottyServer(pipe: PipeFunctions) {
   await waitForCompletion(pipe, job);
 }
 
-async function waitForCompletion(pipe: PipeFunctions, job: any) {
+async function waitForCompletion(pipe: PipeFunctions, job: Deno.Process) {
   const status = await job.status();
   isRunning = false;
   if (status.code != 0) {
@@ -102,6 +102,6 @@ async function waitForCompletion(pipe: PipeFunctions, job: any) {
   }
 }
 
-processPipeMessages<api_pipeserver_v0_3>(gottyServer, "gotty-server");
+processPipeMessages<PipeServerAPIv03>(gottyServer, "gotty-server");
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

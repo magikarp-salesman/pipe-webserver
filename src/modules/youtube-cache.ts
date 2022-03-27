@@ -1,9 +1,9 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   targetLocation: ".youtube_cache/",
@@ -20,7 +20,7 @@ const args = getCommandLineArgs({
 */
 
 const youtubeCacheHandler = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   // if this message doesn't have a body there's nothing to cache here
@@ -54,7 +54,7 @@ const youtubeCacheHandler = (
   return message;
 };
 
-async function waitForCompletion(pipe: PipeFunctions, job: any) {
+async function waitForCompletion(pipe: PipeFunctions, job: Deno.Process) {
   const status = await job.status();
   if (status.code != 0) {
     const rawError = await job.stderrOutput();
@@ -63,7 +63,7 @@ async function waitForCompletion(pipe: PipeFunctions, job: any) {
   }
 }
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   youtubeCacheHandler,
   "youtube-cache",
 );

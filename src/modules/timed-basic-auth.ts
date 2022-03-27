@@ -1,10 +1,10 @@
 import {
-  api_pipeserver_v0_3,
   base64,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   realm: "pipe-server authentication",
@@ -14,7 +14,7 @@ const args = getCommandLineArgs({
 
 const allowedIpAddresses: Map<string, number> = new Map<string, number>();
 
-const basicAuth = (message: api_pipeserver_v0_3, pipe: PipeFunctions) => {
+const basicAuth = (message: PipeServerAPIv03, pipe: PipeFunctions) => {
   let { authorization, ip } = message.request;
   authorization = authorization ?? "";
   ip = ip ?? "";
@@ -53,8 +53,8 @@ const basicAuth = (message: api_pipeserver_v0_3, pipe: PipeFunctions) => {
 };
 
 const removeUnneededInfo = (
-  message: api_pipeserver_v0_3,
-): api_pipeserver_v0_3 => ({
+  message: PipeServerAPIv03,
+): PipeServerAPIv03 => ({
   ...message,
   request: {
     ...message.request,
@@ -63,7 +63,7 @@ const removeUnneededInfo = (
   },
 });
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   basicAuth,
   "timed-basic-auth",
 );

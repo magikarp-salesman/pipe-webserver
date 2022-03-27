@@ -1,9 +1,9 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   // animated icon, doesn't work on chrome
@@ -13,7 +13,7 @@ const args = getCommandLineArgs({
 });
 
 const filterMessages = (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   if (message.request.url === "/favicon.ico") {
@@ -27,7 +27,7 @@ const filterMessages = (
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   filterMessages,
   "favicon",
 );

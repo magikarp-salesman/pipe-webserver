@@ -1,28 +1,22 @@
 import {
-  api_pipeserver_v0_3,
   base64,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   receiverProcessor,
-  Response,
-  serve,
-  Server,
-  ServerRequest,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
 const args = getCommandLineArgs({
   port: 8000,
 });
 
-const server: Server = serve({ port: args.port });
-
-function handlerNewMessages(message: api_pipeserver_v0_3, pipe: PipeFunctions) {
+function handlerNewMessages(message: PipeServerAPIv03, pipe: PipeFunctions) {
   pipe.message(message);
 }
 
 function handlerReplies(
-  message: api_pipeserver_v0_3,
-  req: ServerRequest,
+  message: PipeServerAPIv03,
+  req: Deno.RequestEvent,
   pipe: PipeFunctions,
 ) {
   let body: string | Uint8Array = message.reply.body!;
@@ -31,28 +25,33 @@ function handlerReplies(
     body = base64.decode(message.reply.body!);
   }
 
-  const newObject: Response = {
-    body,
+  const initHeaders = { "Content-Type": "text/html;charset=UTF-8" };
+
+  const newObject: Response = new Response(body, {
     status: message.reply.returnCode ?? 200,
-    headers: new Headers(),
-  };
+    headers: new Headers(initHeaders),
+  });
 
   Object.entries(message.reply.headers).forEach((item: [string, unknown]) => {
     newObject.headers!.append(item[0], String(item[1]));
   });
-  req.respond(newObject);
+
+  req.respondWith(newObject);
 }
 
 function handlerTimeoutMessages(
-  message: api_pipeserver_v0_3,
-  req: ServerRequest,
+  message: PipeServerAPIv03,
+  req: Deno.RequestEvent,
   pipe: PipeFunctions,
 ) {
-  const response: Response = {
+  pipe.debug("message timedout: " + message.uuid + " - " + message.request.url);
+  const response: Response = new Response(null, {
     status: 408,
-  };
-  req.respond(response);
+  });
+  req.respondWith(response);
 }
+
+const server = Deno.listen({ port: args.port });
 
 receiverProcessor(
   handlerNewMessages,

@@ -1,17 +1,17 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
   utils,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 
-import { DB } from "https://deno.land/x/sqlite/mod.ts";
-import { multiParser } from "https://deno.land/x/multiparser@v2.0.3/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.3.0/mod.ts";
+// import { multiParser } from "https://deno.land/x/multiparser@v2.0.3/mod.ts";
 
 const args = getCommandLineArgs({
   database: "facts.db",
-  path: "/facts"
+  path: "/facts",
 });
 
 const awesomeJs = await fetch(
@@ -27,7 +27,7 @@ const geolocation = /* javascript */ `
     });
 `;
 
-const html = (body: String = "", title = "info") => /* html */ `
+const html = (body = "", title = "info") => /* html */ `
     <!doctype html>
     <html lang="en">
         <head>
@@ -198,10 +198,9 @@ const css = /* html */ `
 // db.query(SQL);
 
 const facts = async (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
-
   // If already answered skip.
   if (message.reply.returnCode) return message;
 
@@ -234,7 +233,7 @@ const facts = async (
       results = db.query(query, [fact]);
     } catch (e) {
       pipe.error("error querying the database.", e);
-      return;
+      return message;
     }
 
     const rows = [];
@@ -329,4 +328,4 @@ const facts = async (
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_3>(facts, "facts");
+processPipeMessages<PipeServerAPIv03>(facts, "facts");

@@ -1,9 +1,9 @@
 import {
-  api_pipeserver_v0_3,
   getCommandLineArgs,
   PipeFunctions,
+  PipeServerAPIv03,
   processPipeMessages,
-} from "./dependencies.ts";
+} from "../dependencies.ts";
 import puppeteer from "https://deno.land/x/puppeteer@9.0.2/mod.ts";
 
 const args = getCommandLineArgs({
@@ -21,7 +21,7 @@ const readyScript = `
 `;
 
 const ssrHtmlPageHandler = async (
-  message: api_pipeserver_v0_3,
+  message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
   // we only care about messages that already contain type=html
@@ -42,7 +42,7 @@ const ssrHtmlPageHandler = async (
   // await page.pdf({ path: "/root/docs/test.pdf", format: "a4" });
   pipe.info("Waiting for page to finish loading...");
   await page.waitForFunction('window.status === "ready"', { timeout: 1000 })
-    .catch((e: any) => pipe.warn("timed-out rendering page"));
+    .catch((_e: PromiseLike<void>) => pipe.warn("timed-out rendering page"));
 
   pipe.info("Removing scripts.");
   await page.evaluate(`
@@ -84,7 +84,7 @@ const ssrHtmlPageHandler = async (
   return message;
 };
 
-processPipeMessages<api_pipeserver_v0_3>(
+processPipeMessages<PipeServerAPIv03>(
   ssrHtmlPageHandler,
   "ssr-html-page",
 );
