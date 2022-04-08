@@ -1,9 +1,7 @@
 version: "3.9"
 services:
     application:
-        build:
-            context: .
-            dockerfile: Dockerfile.magikarp
+        image: pipe-webserver/magikarp
         restart: unless-stopped
         ports: 
             - "80:80"
@@ -14,17 +12,13 @@ services:
             pipe:
                 ipv4_address: 10.5.0.2
     puppeteer:
-        build:
-            context: .
-            dockerfile: Dockerfile.puppeteer
+        image: pipe-webserver/puppeteer
         restart: unless-stopped
         networks:
             pipe:
                 ipv4_address: 10.5.0.10
     vim:
-        build:
-            context: .
-            dockerfile: Dockerfile.vim
+        image: pipe-webserver/vim
         restart: unless-stopped
         volumes:
             - "./editor:/root/editor"

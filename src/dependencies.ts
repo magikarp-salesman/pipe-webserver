@@ -33,7 +33,6 @@ import {
   readAll,
   readerFromStreamReader,
 } from "https://deno.land/std@0.130.0/streams/conversion.ts";
-import { crypto } from "https://deno.land/std@0.128.0/crypto/mod.ts";
 import { createHash } from "https://deno.land/std@0.130.0/hash/mod.ts";
 
 // util objects

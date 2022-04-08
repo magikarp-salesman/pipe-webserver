@@ -1,24 +1,13 @@
-FROM denoland/deno:1.20.1 as build
-
-COPY . /root
-WORKDIR /root/src/modules
-RUN deno lint *.ts
-RUN ls -1 *.ts | xargs -I {} deno bundle --unstable {} -- /root/{}.bundle
-
-FROM golang as golangbuilder
+FROM denoland/deno:1.20.5 as runner
 
 WORKDIR /root
-RUN git clone https://github.com/kkdai/youtube.git && cd youtube && go build -o /root/youtubedr ./cmd/youtubedr
-RUN wget https://github.com/sorenisanerd/gotty/releases/download/v1.3.0/gotty_v1.3.0_linux_amd64.tar.gz && tar -xvf gotty_v1.3.0_linux_amd64.tar.gz
+COPY --from=pipe-webserver/golang-builder /root/youtubedr youtubedr
+COPY --from=pipe-webserver/golang-builder /root/gotty gotty
+RUN ln -s /root/youtubedr /usr/bin/youtubedr
+RUN ln -s /root/gotty /usr/bin/gotty
 
-FROM denoland/deno:1.20.1 as runner
-
-WORKDIR /root
-# YOUTUBE-CACHE
-COPY --from=golangbuilder /root/youtubedr youtubedr
 # GOTTY TERMINAL
-COPY --from=golangbuilder /root/gotty gotty
-COPY id_rsa /root/.ssh/id_rsa
+COPY docker/id_rsa /root/.ssh/id_rsa
 RUN chmod 0600 /root/.ssh/id_rsa
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
@@ -28,24 +17,11 @@ RUN apt-get -qq update \
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-COPY --from=build /root/receiver.ts.bundle receiver.js
-COPY --from=build /root/emmiter.ts.bundle emmiter.js
-COPY --from=build /root/blog.ts.bundle blog.js
-COPY --from=build /root/favicon.ts.bundle favicon.js
-COPY --from=build /root/timed-basic-auth.ts.bundle timed-basic-auth.js
-COPY --from=build /root/vim-editor.ts.bundle vim-editor.js
-COPY --from=build /root/markdown-to-html.ts.bundle markdown-to-html.js
-COPY --from=build /root/minify-html.ts.bundle minify-html.js
-COPY --from=build /root/cache.ts.bundle cache.js
-COPY --from=build /root/youtube-cache.ts.bundle youtube-cache.js
-COPY --from=build /root/ssr-html-page.ts.bundle ssr-html-page.js
-COPY --from=build /root/gotty-server.ts.bundle gotty-server.js
-COPY --from=build /root/facts.ts.bundle facts.js
+# PIPESERVER
+COPY --from=pipe-webserver/build /root/*.js /root/
 
 RUN mkdir -p /root/docs
 COPY docs/ /root/docs/
-RUN ln -s /root/youtubedr /usr/bin/youtubedr
-RUN ln -s /root/gotty /usr/bin/gotty
 
 RUN deno install --allow-net=:80 /root/receiver.js --port=80
 RUN deno install /root/timed-basic-auth.js --accepted='vim:simplythebest' --realm='vim is life' --allowedForXMinutes='30'

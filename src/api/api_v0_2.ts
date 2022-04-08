@@ -12,6 +12,7 @@ export interface PipeServerAPIv02 extends PipeServerAPI {
   reply: {
     body?: string;
     base64: boolean;
+    // deno-lint-ignore no-explicit-any
     headers: any;
     returnCode?: number;
   };

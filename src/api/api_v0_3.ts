@@ -14,6 +14,7 @@ export interface PipeServerAPIv03 extends PipeServerAPI {
 
   reply: {
     body?: string;
+    // deno-lint-ignore no-explicit-any
     headers: any;
     type?: "html" | "markdown" | "base64";
     returnCode?: number;

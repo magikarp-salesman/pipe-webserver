@@ -69,6 +69,12 @@ canceled after 5 seconds and return 408 (Request Timedout) to the client.
 The applications print to the standard error output other messages for debugging
 purposes.
 
+## How to build the whole example suite
+
+```sh
+$ bash make.sh
+```
+
 ## Examples
 
 ### Example 1

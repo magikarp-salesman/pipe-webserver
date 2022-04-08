@@ -1,0 +1,10 @@
+FROM denoland/deno:1.20.5
+
+COPY ./src /root/src
+WORKDIR /root
+RUN deno lint src/
+RUN deno fmt --check src/
+WORKDIR /root/src/modules
+RUN ls -1 *.ts | xargs -I {} deno bundle --unstable {} -- /root/{}.bundle
+WORKDIR /root
+RUN ls -1 *.ts.bundle | sed 'p;s/\.ts.bundle/\.js/' | xargs -n2 mv

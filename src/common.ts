@@ -15,7 +15,9 @@ export type PipeFunctions = {
   message: (message: PipeServerAPI) => void;
   info: (message: string) => void;
   warn: (message: string) => void;
+  // deno-lint-ignore no-explicit-any
   error: (message: string, error?: any) => void;
+
   debug: (message: string) => void;
 };
 
@@ -61,6 +63,7 @@ export const sendPipeDebug = (moduleName: string) =>
   };
 
 export const sendPipeError = (moduleName: string) =>
+  // deno-lint-ignore no-explicit-any
   async (message: string, error?: any) => {
     const errorMessage = error ? ` (${error})` : "";
     const finalMessage = `🔥 [error][${moduleName}] ${message}${errorMessage}\n`;
@@ -162,6 +165,7 @@ export async function receiverProcessor(
     req: Deno.RequestEvent,
     pipe: PipeFunctions,
   ) => void,
+  // deno-lint-ignore no-unused-vars
   handlerTimeoutMessages: (
     message: PipeServerAPIv03,
     req: Deno.RequestEvent,
