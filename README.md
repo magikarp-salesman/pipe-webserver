@@ -5,7 +5,7 @@ A web server in [Deno](https://github.com/denoland/deno) using UNIX pipelines.
 ## Summary
 
 One of the most amazing things that I love about UNIX is the ways of work that
-arose from the UNIX philosophy but, in the age of the internet, we saw ever more
+arose from the UNIX philosophy but, in the age of the internet, we saw evermore
 complicated web servers emerge.
 
 Be it Apache, NGINX, IIS, or Tomcat truth is they do a lot more than serving
@@ -14,7 +14,7 @@ adapt templates, do TLS, provide dashboards, manage other sub-processes through
 the way of workers and also do some process management using Fast-CGI or other
 APIs.
 
-This project tries to follow the UNIX principles and create a web server based
+This project tries to follow the UNIX principles and create a web server-based
 on nothing more than open standards and the pure UNIX philosophy while focusing
 on per process security and making developing web servers/applications a lot
 simpler and open.
@@ -64,7 +64,7 @@ any way enforced and can change in any combination possible.
 Even though the messages are processed in a synchronized way nothing prevents
 the processes from treating them asynchronously or even prevents some of them
 from reaching the end of the pipeline, all requests without a reply will be
-canceled after 5 seconds and return 408 (Request Timedout) to the client.
+canceled after 5 seconds and return 408 (Request Timeout) to the client.
 
 The applications print to the standard error output other messages for debugging
 purposes.
@@ -95,7 +95,7 @@ Then to run: `$ docker run -p 8000:8000 server`
 ### Example 2
 
 Receive requests on the default port pass them through a filter ("that only
-allow a certain url to pass") and return a response to the user
+allow a certain URL to pass") and return a response to the user
 
 ```sh
 $ receiver | filter --filterUrl="/helloworld" | hello-world | emitter
@@ -121,10 +121,10 @@ $ receiver | \
 ### Example 3
 
 Receive requests on the default port, reply with the favicon if requested, and
-reply with helloworld all the other requests.
+reply with HelloWorld all the other requests.
 
 ```sh
-$ receiver | favicon | hello-world | emmiter
+$ receiver | favicon | hello-world | emitter
 ```
 
 This example is implemented in the `Dockerfile.example3` file.
@@ -152,7 +152,7 @@ Receive requests on the default port, pass them through the blog program to
 fetch the static blog file from the docs folder.
 
 ```sh
-$ receiver | blog | emmiter
+$ receiver | blog | emitter
 ```
 
 This example is implemented in the `Dockerfile.example5` file.
@@ -163,7 +163,7 @@ Then to run: `$ docker run -p 8000:8000 server`
 
 ### Example 6
 
-Receive requests on the default port, require basic-auth, pass them through the
+Receive requests on the default port, require basic auth, pass them through the
 blog program to fetch the static blog file from the docs folder.
 
 ```sh
@@ -184,8 +184,8 @@ Since we are using Deno as our main driver for this project it is possible to
 bundle the scripts and pack the execution into individual executables that will
 be run separately.
 
-For that we can use the 'warp-packer' project and now we will have different
-executables that we can mix and match to do the multiple webserver
+For that, we can use the 'warp-packer' project and now we will have different
+executables that we can mix and match to do the multiple webservers
 configurations.
 
 To build: `$ docker build -f Dockerfile.packer,nacosx64 -t packer .`
@@ -202,22 +202,22 @@ $ docker stop $INSTANCE
 
 ## Features and TODO list
 
-Tasks strikedthrough are already done, others are in the roadmap.
+Tasks strike-through are already done, others are on the roadmap.
 
 - ~~Create the request API 0.1 schema~~
 - ~~Implement the "Receiver" program~~
 - ~~Implement the "Emitter" program~~
-- ~~Create an basic example of an http server that receives a input text and
+- ~~Create a basic example of an http server that receives an input text and
   replies with "Hello world"~~
-- ~~Create an example of the same program but logging the events to an external
+- ~~Create an example of the same program but log the events to an external
   file. ( access.log )~~
 - ~~Add docker files with examples of the webservers~~
 - ~~Implement a "Filter" program~~
 - ~~Create an example of a program that filters the given requests and only
   allow for a given url to reply to the user.~~
-- ~~Implement a "Blog" program ( replies with a given html/static file )~~
+- ~~Implement a "Blog" program ( replies with a given HTML/static file )~~
 - ~~Create the request API 0.2 schema~~
-- ~~Implement a HTTP basic authentication program~~
+- ~~Implement an HTTP basic authentication program~~
 - ~~Implement a static favicon program as an example~~
 - ~~Added a packer docker build that will create independent executables~~
 - ~~Added a markdown to html5 converter~~
@@ -227,8 +227,8 @@ Tasks strikedthrough are already done, others are in the roadmap.
 
 ## Features that will not be considered or not part of the design
 
-- SSL/TLS implementation - just use stunnel4 a great program which already
-  follows the unix way.
-- Websockets and other "stream" based apis - makes no sense to be controlled by
+- SSL/TLS implementation - just use stunnel4 a great program that already
+  follows the UNIX way.
+- Websockets and other "stream" based APIs - make no sense to be controlled by
   pipelines.
-- Logging - there's already a lot of great tools to do this job.
+- Logging - there are already a lot of great tools to do this job.
