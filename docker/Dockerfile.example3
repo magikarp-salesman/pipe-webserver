@@ -3,15 +3,15 @@ FROM denoland/deno:1.20.5 as runner
 WORKDIR /root
 
 COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter.js
+COPY --from=pipe-webserver/build /root/emitter.js emitter.js
 COPY --from=pipe-webserver/build /root/favicon.js favicon.js
 COPY --from=pipe-webserver/build /root/helloworld.js hello-world.js
 
 RUN deno install --allow-net=:8000 /root/receiver.js
 RUN deno install /root/favicon.js
 RUN deno install /root/hello-world.js
-RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+RUN deno install --allow-net=localhost:8000 /root/emitter.js
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
-CMD [" receiver | favicon | hello-world | emmiter "]
+CMD [" receiver | favicon | hello-world | emitter "]

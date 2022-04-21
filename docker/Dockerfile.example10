@@ -18,7 +18,7 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter.js
+COPY --from=pipe-webserver/build /root/emitter.js emitter.js
 COPY --from=pipe-webserver/build /root/blog.js blog.js
 COPY --from=pipe-webserver/build /root/timed-basic-auth.js timed-basic-auth.js
 COPY --from=pipe-webserver/build /root/vim-editor.js vim-editor.js
@@ -41,12 +41,12 @@ RUN deno install --allow-run /root/youtube-cache.js --targetLocation='/root/docs
 RUN deno install --allow-net='10.5.0.10:9222' --allow-env /root/ssr-html-page.js --host='10.5.0.10'
 RUN deno install --allow-read='/root/docs' --allow-write='/root/docs' --allow-run /root/vim-editor.js
 RUN deno install --allow-read='/root/docs' /root/blog.js
-RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+RUN deno install --allow-net=localhost:8000 /root/emitter.js
 RUN deno install --allow-run /root/gotty-server.js --gottyCommand="ssh -oStrictHostKeyChecking=no -i /root/.ssh/id_rsa 10.5.0.20 -t TERM=xterm-256color vim"
 
 EXPOSE 8000
 EXPOSE 9000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
-# CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emmiter "]
-CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | cache | minify-html | emmiter "]
-# CMD [" receiver |  | emmiter "]
+# CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emitter "]
+CMD [" receiver | gotty-server | vim-editor | youtube-cache | markdown-to-html | blog | cache | minify-html | emitter "]
+# CMD [" receiver |  | emitter "]

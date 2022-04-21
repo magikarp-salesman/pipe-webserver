@@ -10,7 +10,7 @@ const args = getCommandLineArgs({
   port: 8000,
 });
 
-const emmitMessage = (
+const emitMessage = (
   message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
@@ -31,8 +31,8 @@ const emmitMessage = (
 };
 
 processPipeMessages<PipeServerAPIv03>(
-  emmitMessage,
-  "emmiter",
+  emitMessage,
+  "emitter",
   "Initialized...",
 );
 

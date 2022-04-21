@@ -3,7 +3,7 @@ FROM denoland/deno:1.20.5 as runner
 WORKDIR /root
 
 COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter.js
+COPY --from=pipe-webserver/build /root/emitter.js emitter.js
 COPY --from=pipe-webserver/build /root/blog.js blog.js
 COPY --from=pipe-webserver/build /root/timed-basic-auth.js timed-basic-auth.js
 COPY --from=pipe-webserver/build /root/vim-editor.js vim-editor.js
@@ -19,9 +19,9 @@ RUN deno install /root/markdown-to-html.js
 RUN deno install /root/minify-html.js
 RUN deno install --allow-read='/root/docs' --allow-write='/root/docs' /root/vim-editor.js
 RUN deno install --allow-read='/root/docs' /root/blog.js
-RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+RUN deno install --allow-net=localhost:8000 /root/emitter.js
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
-CMD [" receiver | timed-basic-auth | vim-editor | markdown-to-html | blog | minify-html | emmiter "]
+CMD [" receiver | timed-basic-auth | vim-editor | markdown-to-html | blog | minify-html | emitter "]
 

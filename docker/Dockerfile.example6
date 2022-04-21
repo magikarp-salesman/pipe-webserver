@@ -3,7 +3,7 @@ FROM denoland/deno:1.20.5 as runner
 WORKDIR /root
 
 COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter.js
+COPY --from=pipe-webserver/build /root/emitter.js emitter.js
 COPY --from=pipe-webserver/build /root/blog.js blog.js
 COPY --from=pipe-webserver/build /root/basic-auth.js basic-auth.js
 
@@ -13,9 +13,9 @@ COPY docs/* /root/docs/
 RUN deno install --allow-net=:8000 /root/receiver.js
 RUN deno install /root/basic-auth.js --accepted='tim:scott' --realm='the outerlimits blog' 
 RUN deno install --allow-read='/root/docs' /root/blog.js
-RUN deno install --allow-net=localhost:8000 /root/emmiter.js
+RUN deno install --allow-net=localhost:8000 /root/emitter.js
 
 EXPOSE 8000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
-CMD [" receiver | basic-auth | blog | emmiter "]
+CMD [" receiver | basic-auth | blog | emitter "]
 

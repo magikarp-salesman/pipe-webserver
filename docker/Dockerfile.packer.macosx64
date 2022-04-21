@@ -10,7 +10,7 @@ COPY --from=fetcher linux-x64.warp-packer /bin/warp-packer
 RUN chmod a+x /bin/warp-packer
 
 COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter.js
+COPY --from=pipe-webserver/build /root/emitter.js emitter.js
 COPY --from=pipe-webserver/build /root/blog.js blog.js
 COPY --from=pipe-webserver/build /root/basic-auth.js basic-auth.js
 
@@ -32,13 +32,13 @@ RUN echo 'exec deno run --allow-net "${DIR}/payload.js" $@' >> receiver/launch
 RUN cp /usr/bin/deno receiver
 RUN warp-packer --arch macos-x64 --input_dir receiver --exec launch --output receiver.bin
 
-# emmiter
-RUN mkdir emmiter
-COPY --from=pipe-webserver/build /root/emmiter.js emmiter/payload.js
-RUN echo '#!/bin/sh' > emmiter/launch
-RUN echo 'DIR="$(cd "$(dirname "$0")" ; pwd -P)"' >> emmiter/launch
-RUN echo 'exec deno run --allow-net "${DIR}/payload.js" $@' >> emmiter/launch
-RUN cp /usr/bin/deno emmiter
-RUN warp-packer --arch macos-x64 --input_dir emmiter --exec launch --output emmiter.bin
+# emitter
+RUN mkdir emitter
+COPY --from=pipe-webserver/build /root/emitter.js emitter/payload.js
+RUN echo '#!/bin/sh' > emitter/launch
+RUN echo 'DIR="$(cd "$(dirname "$0")" ; pwd -P)"' >> emitter/launch
+RUN echo 'exec deno run --allow-net "${DIR}/payload.js" $@' >> emitter/launch
+RUN cp /usr/bin/deno emitter
+RUN warp-packer --arch macos-x64 --input_dir emitter --exec launch --output emitter.bin
 
 ENTRYPOINT [ "/bin/sh" , "-c" ]
