@@ -10,6 +10,8 @@ docker build -t pipe-webserver/vim -f Dockerfile.vim ..
 docker build -t pipe-webserver/golang-builder -f Dockerfile.golang-builder ..
 
 docker build -t pipe-webserver/magikarp -f Dockerfile.magikarp ..
+[[ "$1" != "all" ]] && exit
+
 docker build -t pipe-webserver/example1 -f Dockerfile.example1 ..
 docker build -t pipe-webserver/example2 -f Dockerfile.example2 ..
 docker build -t pipe-webserver/example3 -f Dockerfile.example3 ..

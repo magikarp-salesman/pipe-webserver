@@ -13,14 +13,14 @@ const args = getCommandLineArgs({
 
 type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
 
-const cacheHandler = async (
+const cacheHandler = (
   message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) => {
   // if we have a cache key set add the headers to the file
 
   if (message.reply.cacheKey) {
-    const hash = await utils.md5(message.reply.cacheKey);
+    const hash = utils.md5(message.reply.cacheKey);
 
     if (message.request.cacheKeyMatch == hash) {
       pipe.info("Cache hit, returning 304");

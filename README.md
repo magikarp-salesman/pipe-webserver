@@ -72,7 +72,7 @@ purposes.
 ## How to build the whole example suite
 
 ```sh
-$ bash make.sh
+$ ./make.sh
 ```
 
 ## Examples

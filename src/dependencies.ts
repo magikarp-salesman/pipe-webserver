@@ -40,6 +40,10 @@ import { createHash } from "https://deno.land/std@0.130.0/hash/mod.ts";
 export const base64 = {
   encode,
   decode,
+  decodeUnicode: (str: string) =>
+    (new TextDecoder("utf8")).decode(
+      decode(str),
+    ),
   encodeUnicode: (str: string) =>
     btoa(
       encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_match, p1) =>

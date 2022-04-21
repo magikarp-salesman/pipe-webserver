@@ -66,7 +66,9 @@ const ssrHtmlPageHandler = async (
       var promises = linksArray.filter(lnk => lnk.rel === 'stylesheet').map(lnk =>
           fetch(lnk.href).then(response => response.text().then(text => {
             const newElement = document.createElement('style');
-            newElement.innerHTML = text;
+            // remove the source mapping comments from the styles
+            const cleanText = text.replaceAll(/\\/\\*(.*)\\*\\//g, "");
+            newElement.innerHTML = cleanText;
             lnk.parentElement.replaceChild(newElement,lnk);  
           }))
       );

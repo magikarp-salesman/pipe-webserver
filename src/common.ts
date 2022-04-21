@@ -46,19 +46,19 @@ export const sendPipeMessage = (_moduleName: string) =>
 
 export const sendPipeInfo = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage = `ℹ️ [info ][${moduleName}] ${message}\n`;
+    const finalMessage = `ℹ️\t[info ][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeWarn = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage = `⚠  [warn ][${moduleName}] ${message}\n`;
+    const finalMessage = `⚠\t[warn ][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeDebug = (moduleName: string) =>
   async (message: string) => {
-    const finalMessage = `🐛 [debug][${moduleName}] ${message}\n`;
+    const finalMessage = `🐛\t[debug][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
@@ -66,7 +66,8 @@ export const sendPipeError = (moduleName: string) =>
   // deno-lint-ignore no-explicit-any
   async (message: string, error?: any) => {
     const errorMessage = error ? ` (${error})` : "";
-    const finalMessage = `🔥 [error][${moduleName}] ${message}${errorMessage}\n`;
+    const finalMessage =
+      `🔥\t[error][${moduleName}] ${message}${errorMessage}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
@@ -135,10 +136,10 @@ async function convertToInternalMessage(
 
 function convertToUserAgent(
   userAgent?: string | null,
-): "wget" | "curl" | "other" {
+): "wget" | "curl" | "browser" {
   if (userAgent?.toLowerCase().includes("curl")) return "curl";
   if (userAgent?.toLowerCase().includes("wget")) return "wget";
-  return "other";
+  return "browser";
 }
 
 const requests: Map<string, Deno.RequestEvent> = new Map();
