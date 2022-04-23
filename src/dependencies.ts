@@ -34,6 +34,7 @@ import {
   readerFromStreamReader,
 } from "https://deno.land/std@0.130.0/streams/conversion.ts";
 import { createHash } from "https://deno.land/std@0.130.0/hash/mod.ts";
+export { Queue } from "https://deno.land/x/queue@1.2.0/mod.ts";
 
 // util objects
 
@@ -49,6 +50,25 @@ export const base64 = {
       encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_match, p1) =>
         String.fromCharCode(parseInt("0x" + p1))),
     ), // https://attacomsian.com/blog/javascript-base64-encode-decode
+};
+
+export const runProcessAndWait = async (cmd: string[]) => {
+  const job = Deno.run({
+    cmd,
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const status = await job.status();
+  const isError = status.code != 0;
+  const rawOutput = await job.output();
+  const output = new TextDecoder().decode(rawOutput);
+  const error = isError
+    ? (async () => {
+      const rawError = await job.stderrOutput();
+      return new TextDecoder().decode(rawError);
+    })()
+    : undefined;
+  return { status, isError, output, error };
 };
 
 export const utils = {
@@ -76,4 +96,20 @@ export const utils = {
   },
   Uint8ArrayToString: async (array: Promise<Uint8Array>): Promise<string> =>
     new TextDecoder("utf-8").decode(await array),
+};
+
+export const exists = async (filename: string): Promise<boolean> => {
+  try {
+    await Deno.stat(filename);
+    // successful, file or directory must exist
+    return true;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      // file or directory does not exist
+      return false;
+    } else {
+      // unexpected error, maybe permissions, pass it along
+      throw error;
+    }
+  }
 };

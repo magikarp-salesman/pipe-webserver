@@ -10,6 +10,7 @@ import {
 const args = getCommandLineArgs({
   baseUrl: "/docs",
   localFolder: "./docs",
+  defaultIndexFile: "index.html",
 });
 
 type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
@@ -35,8 +36,14 @@ const blogHandler = async (
 
       pipe.debug(`Reading file ${path}`);
 
-      const fileData = await Deno.readFile(path);
+      const statDir = await Deno.lstat(path);
+      const finalPath = (statDir.isDirectory)
+        ? path + args.defaultIndexFile
+        : path;
+
+      const fileData = await Deno.readFile(finalPath);
       const stat = await Deno.lstat(path);
+
       message.reply.cacheKey = stat.mtime?.toString() || "";
       if (isHtml) {
         message.reply.body = new TextDecoder("utf-8").decode(fileData);

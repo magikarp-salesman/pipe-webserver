@@ -80,6 +80,7 @@ export async function processPipeMessages<T>(
   startMessage = `Started handler...`,
 ) {
   const pipe = pipeFunctions(moduleName);
+  // TODO: pass a different pipe object for each message so the logs already contain the info of which message it is processing
   pipe.debug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
     let message, reply;

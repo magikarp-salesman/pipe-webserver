@@ -1,8 +1,11 @@
 import {
+  exists,
   getCommandLineArgs,
   PipeFunctions,
   PipeServerAPIv03,
   processPipeMessages,
+  Queue,
+  runProcessAndWait,
 } from "../dependencies.ts";
 
 const args = getCommandLineArgs({
@@ -12,12 +15,12 @@ const args = getCommandLineArgs({
 
 /*
     TODO:
-    - check if previously downloaded
     - better link regexp
-    - better name handling (run youtubedr info first)
     - videos by folder/subfolder
-    - run the downloader without checking for the certificates
 */
+
+const queueDownloading = new Queue();
+const currentlyDownloading: string[] = [];
 
 const youtubeCacheHandler = (
   message: PipeServerAPIv03,
@@ -26,41 +29,75 @@ const youtubeCacheHandler = (
   // if this message doesn't have a body there's nothing to cache here
   if (message.reply.body === undefined) return message;
 
+  // pause the queue temporarily
+  queueDownloading.stop();
+
   const youtubeLinks = message.reply.body.match(
     /\((.*)youtube\.com(.*)v=(.*)\)/g,
   );
 
   if (youtubeLinks !== null) {
-    youtubeLinks.forEach(async (link: string) => {
+    youtubeLinks.forEach((link: string) => {
       const otherLink = link.substr(1, link.length - 2);
-      const cmd = [
-        args.targetExecutable,
-        "download",
-        "-d",
-        args.targetLocation,
-        otherLink,
-      ];
-      pipe.info(cmd.join(" "));
-      const job = Deno.run({
-        cmd: cmd,
-        stdout: "null",
-        stderr: "piped",
+      if (currentlyDownloading.includes(otherLink)) {
+        pipe.debug(`Already downloading file for: ${otherLink}`);
+        return;
+      }
+
+      currentlyDownloading.push(otherLink);
+
+      queueDownloading.push(async () => {
+        const filename = await findVideoTitleAndConvert(otherLink, pipe);
+        const fileExists = await exists(args.targetLocation + "/" + filename);
+        if (fileExists) {
+          pipe.info(
+            `File already exists, not downloading. ${
+              args.targetLocation + "/" + filename
+            }`,
+          );
+        } else {
+          const cmd = [
+            args.targetExecutable,
+            "download",
+            "--insecure",
+            "--directory",
+            args.targetLocation,
+            "--filename",
+            filename,
+            otherLink,
+          ];
+          pipe.debug(cmd.join(" "));
+          await runProcessAndWait(cmd);
+          pipe.info(`Finished downloading: ${filename}`);
+        }
+        delete currentlyDownloading[currentlyDownloading.indexOf(otherLink)];
       });
-      await waitForCompletion(pipe, job);
     });
   }
 
-  // forward immediately the message
+  // start processing stuff
+  queueDownloading.start();
+
+  // forward immediately the message and keep downloading
   return message;
 };
 
-async function waitForCompletion(pipe: PipeFunctions, job: Deno.Process) {
-  const status = await job.status();
-  if (status.code != 0) {
-    const rawError = await job.stderrOutput();
-    const errorString = new TextDecoder().decode(rawError);
-    pipe.error("error downloading video: " + errorString);
-  }
+async function findVideoTitleAndConvert(videoUrl: string, pipe: PipeFunctions) {
+  const cmd = [
+    args.targetExecutable,
+    "info",
+    "--insecure",
+    videoUrl,
+  ];
+  pipe.info(`Getting video info for ${videoUrl}`);
+  const { output } = await runProcessAndWait(cmd);
+  const titleRaw =
+    output.split("\n").filter((s) => s.includes("Title:")).map((s) =>
+      s.trim().split("Title:")[1]
+    )[0];
+  const newTitle = titleRaw.toLowerCase().replace(/[\W_]+/g, "_") + ".mp4";
+
+  return newTitle;
 }
 
 processPipeMessages<PipeServerAPIv03>(

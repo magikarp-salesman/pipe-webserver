@@ -2,6 +2,7 @@ FROM denoland/deno:1.20.5
 
 COPY ./src /root/src
 WORKDIR /root
+RUN deno cache src/dependencies.ts
 RUN deno lint src/
 RUN deno fmt --check src/
 WORKDIR /root/src/modules

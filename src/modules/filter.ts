@@ -16,7 +16,7 @@ const filterMessages = (
   // forward message only if url is allowed
   if (message.request.url.startsWith(args.filterUrl)) return message;
 
-  pipe.debug(`Filtered message with url: ${message.request.url}`);
+  pipe.info(`Filtered message with url: ${message.request.url}`);
 };
 
 processPipeMessages<PipeServerAPIv01>(filterMessages, "filter");

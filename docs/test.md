@@ -43,6 +43,7 @@ $ receiver | favicon | blog | tee /dev/stderr | emitter
 ## Embedded video
 
 [youtube video](https://www.youtube.com/watch?v=UrYPbF8_xNk)
+[youtube video](https://www.youtube.com/watch?v=dXMHf57xs5M)
 
 ```java
 class SystemClass {

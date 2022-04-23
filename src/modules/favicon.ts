@@ -17,7 +17,7 @@ const filterMessages = (
   pipe: PipeFunctions,
 ) => {
   if (message.request.url === "/favicon.ico") {
-    pipe.debug("Sending favicon");
+    pipe.info("Sending favicon");
     message.reply.returnCode = 200;
     message.reply.headers["Content-Type"] = "image/x-icon";
     message.reply.type = "base64";

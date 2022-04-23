@@ -32,7 +32,7 @@ const minifyHtmlHandler = (
   const percentage = (100 - ((newSize * 100) / previousSize)).toPrecision(2);
   message.reply.body = minifiedBody;
 
-  pipe.debug(`Size reduced: ${percentage}%`);
+  pipe.info(`Size reduced: ${percentage}%`);
   return Promise.resolve(message);
 };
 
