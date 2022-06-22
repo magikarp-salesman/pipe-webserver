@@ -4,6 +4,7 @@ import {
   PipeServerAPIv03,
   PipeServerAPIv03Cache,
   processPipeMessages,
+  utils,
 } from "../dependencies.ts";
 
 const args = getCommandLineArgs({
@@ -149,7 +150,7 @@ function postProcessIncludes(
   markdown: string,
   basePath: string,
 ) {
-  return markdown.split("\n").map((row) => {
+  return utils.perLine(markdown).map((row) => {
     const rowTrim = row.trim().toLowerCase();
     if (rowTrim.startsWith("{!") && rowTrim.endsWith("!}")) {
       const fileName = basePath + rowTrim.substring(2, rowTrim.length - 2);
@@ -162,7 +163,7 @@ function postProcessIncludes(
       }
     }
     return row;
-  }).join("\n");
+  }).toString();
 }
 
 processPipeMessages<PipeServerAPICombo>(

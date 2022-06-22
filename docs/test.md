@@ -54,7 +54,7 @@ class SystemClass {
 ```
 
 <details>
-<summary>Here's some collapsible code hidden...</summary>
+<summary>Here's some collapsible code hidden under a summary...</summary>
 <p>
 
 ```c#

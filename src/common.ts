@@ -4,7 +4,10 @@ import {
   PipeServerAPI,
   PipeServerAPIv03,
   PipeServerAPIv03Cache,
+  PipeWebserverModuleHelp,
+  printHelp,
   readLines,
+  SimpleArgs,
   urlParse,
   utils,
 } from "./dependencies.ts";
@@ -33,10 +36,12 @@ const pipeFunctions = (moduleName: string): PipeFunctions => {
 };
 
 export function getCommandLineArgs(defaults: Record<string, unknown>) {
-  return {
+  const allValues = {
     ...defaults,
     ...parse(Deno.args),
   };
+
+  return allValues;
 }
 
 export const sendPipeMessage = (_moduleName: string) =>
@@ -78,8 +83,15 @@ export async function processPipeMessages<T>(
   ) => Promise<PipeServerAPI> | PipeServerAPI | undefined | void,
   moduleName: string,
   startMessage = `Started handler...`,
+  help?: PipeWebserverModuleHelp,
+  args?: SimpleArgs,
 ) {
   const pipe = pipeFunctions(moduleName);
+  if (help && args && args["help"]) {
+    // print help message and finish
+    console.log(printHelp(help));
+    return;
+  }
   // TODO: pass a different pipe object for each message so the logs already contain the info of which message it is processing
   pipe.debug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
@@ -115,12 +127,14 @@ async function convertToInternalMessage(
   );
 
   const parsedUrl = urlParse(req.request.url);
+  const position = req.request.url.indexOf(parsedUrl.pathname);
+  const cutUrl = req.request.url.slice(position);
 
   const newRequest: PipeServerAPICombo = {
     version: 0.3,
     uuid: utils.uuid.generate(),
     request: {
-      url: parsedUrl.pathname,
+      url: cutUrl,
       method: req.request.method.toLowerCase(),
       authorization: req.request.headers.get("Authorization") ?? undefined,
       ip: (conn.remoteAddr as Deno.NetAddr).hostname,
@@ -137,8 +151,9 @@ async function convertToInternalMessage(
 
 function convertToUserAgent(
   userAgent?: string | null,
-): "wget" | "curl" | "browser" {
+): "wget" | "curl" | "browser" | "vim" {
   if (userAgent?.toLowerCase().includes("curl")) return "curl";
+  if (userAgent?.toLowerCase().includes("vim")) return "vim";
   if (userAgent?.toLowerCase().includes("wget")) return "wget";
   return "browser";
 }

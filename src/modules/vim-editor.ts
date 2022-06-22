@@ -7,6 +7,7 @@ import {
   PipeServerAPIv03,
   PipeServerAPIv03Cache,
   processPipeMessages,
+  utils,
 } from "../dependencies.ts";
 
 const args = getCommandLineArgs({
@@ -40,20 +41,23 @@ const vimEditorHandler = async (
   const url = new URL(args.host + message.request.url);
   const grepQuery = url.searchParams.get("grep");
 
-  if (message.request.userAgent == "wget") {
+  if (
+    message.request.userAgent == "vim" && message.request.method === "get" &&
+    grepQuery == undefined
+  ) {
     // this is a request from vim, send the raw file
     return await handleShowRawFile(message, pipe);
   }
 
   if (
-    message.request.userAgent == "curl" && message.request.method === "get" &&
+    message.request.userAgent == "vim" && message.request.method === "get" &&
     grepQuery != undefined
   ) {
     // this is a search request from vimgrep
     return handleSearchRequest(message, pipe, grepQuery);
   }
 
-  if (message.request.userAgent == "curl" && message.request.method === "put") {
+  if (message.request.userAgent == "vim" && message.request.method === "put") {
     // this is a update request from vim
     return handleUpdateFile(message, pipe);
   }
@@ -149,24 +153,25 @@ async function handleShowRawDirectory(
       ),
     ).map((entry) => entry.link).join("\n");
 
-    const trimAllLines = (text: string) =>
-      text.split("\n").map((l) => l.trim()).join("\n");
-    const result = trimAllLines(`\" Files in directory: ${dir}
+    const result = utils.perLine(`\" Files in directory: ${dir}
 
   ${fileLinks}
   
   " search by grep
-  :set grepprg=curl\\ --silent\\ ${
+  :set grepprg=curl\\ --silent\\ --user-agent\\ vim\\ ${
       args.host +
       args.baseUrl
     }/?grep=$* | grep! | redraw! | copen
 
+  " refresh this directory
+  :e! %
+
   " helpful commands:
-  " :nnoremap <leader>el yy:@"<CR>
-  " :nnoremap <leader>ol yiW:!open <C-R>"<CR>
+  :nnoremap <leader>el yy:@"<CR>      " execute the line under the cursor as a vim command
+  :nnoremap <leader>ol yiW:!open <C-R>"<CR>
   "
   " vim: ft=vim ts=2 sts=2 sw=2 tw=0 noet
-  `);
+  `).trim().toString();
 
     pipe.info(`Reading raw directory listing`);
     message.reply.body = result;
@@ -248,14 +253,10 @@ async function handleSearchRequest(
   const rawOutput = await job.output();
   const output = new TextDecoder().decode(rawOutput);
   pipe.debug("Got the following results number:" + output.split("\n").length);
-  const remoteOutput = output.split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line != "")
-    .map((line) =>
-      args.host + args.baseUrl + "/" + relativePath + "/" +
-      line.substring(directory.length)
-    )
-    .join("\n");
+  pipe.debug(output);
+  const remoteOutput = utils.perLine(output).trim().filterEmpty().map(
+    (line) => args.host + "/" + url + "/" + line.substring(path.length),
+  ).toString();
 
   pipe.info(`Returning grep command results`);
   message.reply.body = remoteOutput;

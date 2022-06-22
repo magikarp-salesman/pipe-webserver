@@ -2,9 +2,10 @@
 set -e
 cd docker
 export DOCKER_SCAN_SUGGEST=false
-export DOCKER_BUILDKIT=0
-
+export DOCKER_BUILDKIT=1
 docker build -t pipe-webserver/build -f Dockerfile.build ..
+
+export DOCKER_BUILDKIT=0
 docker build -t pipe-webserver/puppeteer -f Dockerfile.puppeteer ..
 docker build -t pipe-webserver/vim -f Dockerfile.vim ..
 docker build -t pipe-webserver/golang-builder -f Dockerfile.golang-builder ..

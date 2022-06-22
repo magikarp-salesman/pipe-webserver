@@ -59,17 +59,62 @@ export const runProcessAndWait = async (cmd: string[]) => {
     stderr: "piped",
   });
   const status = await job.status();
-  const isError = status.code != 0;
   const rawOutput = await job.output();
   const output = new TextDecoder().decode(rawOutput);
-  const error = isError
+  const error = !status.success
     ? (async () => {
       const rawError = await job.stderrOutput();
       return new TextDecoder().decode(rawError);
     })()
     : undefined;
-  return { status, isError, output, error };
+  return { code: status.code, sucess: status.success, output, error };
 };
+
+const perLine = (input: string, splitter = PerLine.defaultSplitter) =>
+  new PerLine(input, splitter);
+
+class PerLine {
+  static defaultSplitter = "\n";
+  input: string;
+  splitter: string;
+
+  constructor(input: string, splitter = "\n") {
+    this.input = input;
+    this.splitter = splitter;
+  }
+
+  static from = (x: string, splitter = this.defaultSplitter) =>
+    new PerLine(x, splitter);
+  static fromList = (x: string[]) => new PerLine(x.join(this.defaultSplitter));
+
+  map = (f: (x: string) => string) =>
+    new PerLine(this.input.split(this.splitter).map(f).join(this.splitter));
+  trim = () =>
+    new PerLine(
+      this.input.split(this.splitter).map((s) => s.trim()).join(this.splitter),
+    );
+  wrap = () =>
+    new PerLine(
+      this.input.replace(/(?![^\n]{1,100}$)([^\n]{1,100})\s/g, "$1\n"),
+    );
+  filterEmpty = () =>
+    new PerLine(
+      this.input.split(this.splitter).filter((s) =>
+        s != undefined && s != "" && s != null
+      )
+        .join(
+          this.splitter,
+        ),
+    );
+
+  toLowercase = () =>
+    new PerLine(
+      this.input.split(this.splitter).map((s) => s.toLowerCase()).join(
+        this.splitter,
+      ),
+    );
+  toString = (): string => this.input;
+}
 
 export const utils = {
   uuid,
@@ -96,6 +141,7 @@ export const utils = {
   },
   Uint8ArrayToString: async (array: Promise<Uint8Array>): Promise<string> =>
     new TextDecoder("utf-8").decode(await array),
+  perLine,
 };
 
 export const exists = async (filename: string): Promise<boolean> => {
@@ -112,4 +158,58 @@ export const exists = async (filename: string): Promise<boolean> => {
       throw error;
     }
   }
+};
+
+export type SimpleArgs = {
+  // deno-lint-ignore no-explicit-any
+  [x: string]: any;
+  _: (string | number)[];
+};
+
+// TODO function to print the help part and adding a description + examples to all of them
+export type PipeWebserverModuleHelp = {
+  moduleName: string;
+  description: string;
+  examples: string[];
+  options: SimpleArgs;
+  install?: string;
+  url?: string;
+  usage?: string;
+  jsonApi: string[];
+};
+
+export const printHelp = (
+  {
+    moduleName,
+    examples,
+    description,
+    install,
+    options,
+    usage,
+    url = "https://github.com/magikarp-salesman/pipe-webserver",
+  }: PipeWebserverModuleHelp,
+): string => {
+  if (!usage) usage = `receiver | ${moduleName} [OPTION] | emitter`;
+  const help = `
+  usage: ${usage}
+
+  This module is designed to be used as part of the pipe-webserver project, to see more visit: ${url}
+
+  Description: ${description}
+
+  ${
+    PerLine.fromList(
+      Object.entries(options).map(([k, o]) => `--${k}\t\t default: ${o}`),
+    )
+  }
+
+  Examples:
+
+  ${PerLine.fromList(examples)}
+
+  To install this module as a Deno executable:
+  deno install ${moduleName} ${install ? install + " " : " "}[OPTION]
+
+  `;
+  return perLine(help).trim().wrap().toString();
 };

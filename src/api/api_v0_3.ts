@@ -7,7 +7,7 @@ export interface PipeServerAPIv03 extends PipeServerAPI {
     url: string;
     method: string;
     authorization?: string;
-    userAgent: "curl" | "wget" | "browser";
+    userAgent: "curl" | "wget" | "vim" | "browser";
     ip?: string;
     payload?: string;
   };
