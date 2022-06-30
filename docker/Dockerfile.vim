@@ -27,7 +27,7 @@ RUN curl -o .vim_magikarp/.vimrc --create-dirs https://raw.githubusercontent.com
     && ln -sf .vim_magikarp/.vimrc .vimrc \
     && bash .vimrc
 
-COPY docker/autocommand.vim /root/.vim_magikarp/autoload
+COPY docker/autocommand.vim /root/.vim_magikarp/plugin/pipe/
 
 COPY docker/id_rsa.pub /root/.ssh/authorized_keys
 

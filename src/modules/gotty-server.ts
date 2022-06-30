@@ -45,8 +45,7 @@ function mainPage(message: PipeServerAPIv03, pipe: PipeFunctions) {
   message.reply.returnCode = 200;
   message.reply.type = "html";
   message.reply.body = `
-  <!DOCTYPE html>
-  <html>
+  <!DOCTYPE html><html data-nossr>
   <head>
 	<title>redirecting...</title>
 

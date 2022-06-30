@@ -29,6 +29,11 @@ const ssrHtmlPageHandler = async (
     return message;
   }
 
+  if (message.reply.body.includes("data-nossr")) {
+    // skip pages that cannot be rendered server side
+    return message;
+  }
+
   // run inside puppeter, wait for it to render,
   // get the html out, inline all the stylesheets, remove all scripts
   const browser = await puppeteer.connect({
@@ -49,6 +54,8 @@ const ssrHtmlPageHandler = async (
       var scripts = document.getElementsByTagName('script');
       var scriptsArray = [];
       for (let script of scripts){
+        // skip scripts that cannot be inline
+        if(script.dataset.noinline == 'true') continue;
         scriptsArray.push(script);
       }
 
