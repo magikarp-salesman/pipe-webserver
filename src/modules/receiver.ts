@@ -36,7 +36,9 @@ function handlerReplies(
     newObject.headers!.append(item[0], String(item[1]));
   });
 
-  req.respondWith(newObject);
+  req.respondWith(newObject).catch((exception) => {
+    pipe.warn("Could not reply to client " + exception);
+  });
 }
 
 function handlerTimeoutMessages(
