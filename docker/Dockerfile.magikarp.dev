@@ -1,0 +1,30 @@
+FROM denoland/deno:1.26.2 as runner
+
+WORKDIR /root
+COPY --from=pipe-webserver/golang-builder /root/youtubedr youtubedr
+COPY --from=pipe-webserver/golang-builder /root/gotty gotty
+RUN ln -s /root/youtubedr /usr/bin/youtubedr
+RUN ln -s /root/gotty /usr/bin/gotty
+
+# GOTTY TERMINAL
+COPY docker/id_rsa /root/.ssh/id_rsa
+RUN chmod 0600 /root/.ssh/id_rsa
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
+    ssh \ 
+    locales \ 
+    entr
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+# PIPESERVER
+
+ADD docker/entrypoint.dev.sh /root/ 
+
+EXPOSE 8000
+EXPOSE 9000
+ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail"]
+# CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emitter "]
+CMD ["/root/entrypoint.dev.sh"]
+# CMD [" receiver |  | emitter "]

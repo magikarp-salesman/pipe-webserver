@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+    application-dev:
+        image: pipe-webserver/magikarp.dev
+        restart: unless-stopped
+        ports: 
+            - "80:80"
+            - "9000:9000" # gotty port
+        volumes:
+            - "./docs:/root/docs"
+            - "./src:/root/src"
+            - "./editor:/root/editor"
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.2
+    puppeteer:
+        image: pipe-webserver/puppeteer
+        restart: unless-stopped
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.10
+    vim:
+        image: pipe-webserver/vim
+        restart: unless-stopped
+        volumes:
+            - "./editor:/root/editor"
+        extra_hosts:
+                - "magikarp.sale:10.5.0.2"
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.20
+networks:
+    pipe:
+        ipam:
+            config:
+                - subnet: 10.5.0.0/16

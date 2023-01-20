@@ -11,6 +11,7 @@ const args = getCommandLineArgs({
 });
 
 function handlerNewMessages(message: PipeServerAPIv03, pipe: PipeFunctions) {
+  pipe.info("Received request: " + message.request.url);
   pipe.message(message);
 }
 
@@ -46,7 +47,7 @@ function handlerTimeoutMessages(
   req: Deno.RequestEvent,
   pipe: PipeFunctions,
 ) {
-  pipe.debug("message timedout: " + message.uuid + " - " + message.request.url);
+  pipe.debug("Message timedout: " + message.uuid + " - " + message.request.url);
   const response: Response = new Response(null, {
     status: 408,
   });

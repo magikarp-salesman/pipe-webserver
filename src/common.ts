@@ -44,37 +44,39 @@ export function getCommandLineArgs(defaults: Record<string, unknown>) {
   return allValues;
 }
 
-export const sendPipeMessage = (_moduleName: string) =>
-  (message: PipeServerAPI) => {
-    console.log(JSON.stringify(message));
+export const sendPipeMessage =
+  (_moduleName: string) => (message: PipeServerAPI) => {
+    try {
+      console.log(JSON.stringify(message));
+    } catch {
+      sendPipeError(_moduleName)("Can't write to stdout. exiting...");
+      Deno.exit(1);
+    }
   };
 
-export const sendPipeInfo = (moduleName: string) =>
-  async (message: string) => {
-    const finalMessage = `ℹ️\t[info ][${moduleName}] ${message}\n`;
-    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-  };
+export const sendPipeInfo = (moduleName: string) => async (message: string) => {
+  const finalMessage = `ℹ️\t[info ][${moduleName}] ${message}\n`;
+  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+};
 
-export const sendPipeWarn = (moduleName: string) =>
-  async (message: string) => {
-    const finalMessage = `⚠\t[warn ][${moduleName}] ${message}\n`;
-    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-  };
+export const sendPipeWarn = (moduleName: string) => async (message: string) => {
+  const finalMessage = `🔔\t[warn ][${moduleName}] ${message}\n`;
+  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+};
 
-export const sendPipeDebug = (moduleName: string) =>
-  async (message: string) => {
+export const sendPipeDebug =
+  (moduleName: string) => async (message: string) => {
     const finalMessage = `🐛\t[debug][${moduleName}] ${message}\n`;
     await Deno.stderr.write(new TextEncoder().encode(finalMessage));
   };
 
 export const sendPipeError = (moduleName: string) =>
-  // deno-lint-ignore no-explicit-any
-  async (message: string, error?: any) => {
-    const errorMessage = error ? ` (${error})` : "";
-    const finalMessage =
-      `🔥\t[error][${moduleName}] ${message}${errorMessage}\n`;
-    await Deno.stderr.write(new TextEncoder().encode(finalMessage));
-  };
+// deno-lint-ignore no-explicit-any
+async (message: string, error?: any) => {
+  const errorMessage = error ? ` (${error})` : "";
+  const finalMessage = `🔥\t[error][${moduleName}] ${message}${errorMessage}\n`;
+  await Deno.stderr.write(new TextEncoder().encode(finalMessage));
+};
 
 export async function processPipeMessages<T>(
   handler: (
@@ -85,6 +87,7 @@ export async function processPipeMessages<T>(
   startMessage = `Started handler...`,
   help?: PipeWebserverModuleHelp,
   args?: SimpleArgs,
+  warnOnDroppedMessages = true,
 ) {
   const pipe = pipeFunctions(moduleName);
   if (help && args && args["help"]) {
@@ -113,7 +116,7 @@ export async function processPipeMessages<T>(
     if (reply) {
       pipe.message(reply);
     } else {
-      pipe.debug("Dropped message...");
+      if (warnOnDroppedMessages) pipe.warn("Dropped message!");
     }
   }
 }
@@ -215,7 +218,6 @@ export async function receiverProcessor(
       });
     } else {
       // handle the new request
-      pipe.debug(`Received request`);
       const ndjson: PipeServerAPIv03 = await convertToInternalMessage(
         req,
         conn,

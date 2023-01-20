@@ -27,13 +27,6 @@ const blogHandler = async (
       const path = args.localFolder +
         message.request.url.substring(args.baseUrl.length);
 
-      const isHtml = message.request.url.toLowerCase().endsWith("html");
-
-      const isJpeg = message.request.url.toLowerCase().endsWith("jpg") ||
-        message.request.url.toLowerCase().endsWith("jpeg");
-
-      const isPng = message.request.url.toLowerCase().endsWith("png");
-
       pipe.debug(`Reading file ${path}`);
 
       const statDir = await Deno.lstat(path);
@@ -43,6 +36,13 @@ const blogHandler = async (
 
       const fileData = await Deno.readFile(finalPath);
       const stat = await Deno.lstat(path);
+
+      const isHtml = finalPath.toLowerCase().endsWith("html");
+
+      const isJpeg = finalPath.toLowerCase().endsWith("jpg") ||
+        finalPath.toLowerCase().endsWith("jpeg");
+
+      const isPng = finalPath.toLowerCase().endsWith("png");
 
       message.reply.cacheKey = stat.mtime?.toString() || "";
       if (isHtml) {

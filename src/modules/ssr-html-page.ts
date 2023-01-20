@@ -83,6 +83,24 @@ const ssrHtmlPageHandler = async (
       Promise.allSettled(promises);
     `);
 
+  pipe.info("Merging stylesheets");
+  await page.evaluate(`
+    var styles = document.getElementsByTagName("style");
+    var stylesArray = [].slice.call(styles);
+    var finalStyle = "";
+    for (let style of stylesArray){
+      finalStyle = finalStyle + style.innerHTML.replaceAll('\\n',' ') + "\\n";
+    }
+
+    const newElement = document.createElement('style');
+    newElement.innerHTML = finalStyle;
+    document.getElementsByTagName("head")[0].appendChild(newElement);
+
+    for (let style of stylesArray){
+      style.parentElement.removeChild(style);
+    }
+  `);
+
   const renderedSource = await page.evaluate(
     "document.getElementsByTagName('html')[0].innerHTML",
   );

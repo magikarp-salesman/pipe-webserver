@@ -123,12 +123,11 @@ export const utils = {
     hash.update(value);
     return hash.toString();
   },
-  paddedLowercase: (size = 20, filler = " ") =>
-    (value: string) =>
-      value.toLowerCase().substr(0, size).padStart(
-        size,
-        filler,
-      ),
+  paddedLowercase: (size = 20, filler = " ") => (value: string) =>
+    value.toLowerCase().substr(0, size).padStart(
+      size,
+      filler,
+    ),
   readableStreamToUint8Array: (
     stream: ReadableStream<Uint8Array> | null,
   ): Promise<Uint8Array> => {

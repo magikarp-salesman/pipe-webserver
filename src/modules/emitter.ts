@@ -34,6 +34,9 @@ processPipeMessages<PipeServerAPIv03>(
   emitMessage,
   "emitter",
   "Initialized...",
+  undefined,
+  undefined,
+  false,
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet

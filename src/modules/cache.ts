@@ -28,7 +28,7 @@ const cacheHandler = (
       message.reply.body = undefined;
       message.reply.type = undefined;
     } else {
-      pipe.info("Adding cache hash: " + hash);
+      pipe.info("Setting cache hash: " + hash);
     }
 
     message.reply.headers["ETag"] = hash;
