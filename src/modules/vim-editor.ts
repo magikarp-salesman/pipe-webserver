@@ -63,7 +63,9 @@ const vimEditorHandler = async (
   }
 
   // unknown case, show an error
-  pipe.error(`Could not handle request: ${message.request.url}`);
+  pipe.error(
+    `Could not handle request: ${message.request.url} ${message.request.userAgent}`,
+  );
 
   return message; // forward message
 };

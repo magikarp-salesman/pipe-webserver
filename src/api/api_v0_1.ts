@@ -8,6 +8,7 @@ export interface PipeServerAPIv01 extends PipeServerAPI {
 
   request: {
     url: string;
+    fullUrl: string;
     method: string;
   };
 

@@ -138,6 +138,7 @@ async function convertToInternalMessage(
     uuid: utils.uuid.generate(),
     request: {
       url: cutUrl,
+      fullUrl: req.request.url,
       method: req.request.method.toLowerCase(),
       authorization: req.request.headers.get("Authorization") ?? undefined,
       ip: (conn.remoteAddr as Deno.NetAddr).hostname,

@@ -5,6 +5,7 @@ export interface PipeServerAPIv02 extends PipeServerAPI {
 
   request: {
     url: string;
+    fullUrl: string;
     method: string;
     authorization?: string;
   };

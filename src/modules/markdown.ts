@@ -81,8 +81,13 @@ async function handleShowFile(
   pipe: PipeFunctions,
 ) {
   try {
-    const path = args.localFolder +
-      message.request.url.substring(args.baseUrl.length);
+    const file = message.request.url.substring(args.baseUrl.length);
+    const path = args.localFolder + file;
+    const indexOfFile = message.request.fullUrl.indexOf(file);
+    const fullUrlWithoutFile = message.request.fullUrl.slice(
+      0,
+      indexOfFile + 1,
+    );
     const stat = await Deno.lstat(path);
 
     pipe.info(`Reading raw file ${path}`);
@@ -94,7 +99,7 @@ async function handleShowFile(
     message.reply.body = isEncryptedFile
       ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
         "\n````"
-      : postProcessIncludes(pipe, fileData, directory);
+      : postProcessIncludes(pipe, fileData, directory, fullUrlWithoutFile);
     message.reply.type = "markdown";
     message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
@@ -139,7 +144,12 @@ async function handleShowDirectory(
   `;
 
   message.reply.cacheKey = stat.mtime?.toString() || "";
-  message.reply.body = postProcessIncludes(pipe, markdownResult, path);
+  message.reply.body = postProcessIncludes(
+    pipe,
+    markdownResult,
+    path,
+    message.request.fullUrl,
+  );
   message.reply.type = "markdown";
   message.reply.returnCode = 200;
   return message;
@@ -149,17 +159,36 @@ function postProcessIncludes(
   pipe: PipeFunctions,
   markdown: string,
   basePath: string,
+  urlPathWithoutFile: string,
 ) {
   return utils.perLine(markdown).map((row) => {
     const rowTrim = row.trim().toLowerCase();
     if (rowTrim.startsWith("{!") && rowTrim.endsWith("!}")) {
-      const fileName = basePath + rowTrim.substring(2, rowTrim.length - 2);
-      try {
-        const file = Deno.readFileSync(fileName);
-        pipe.info(`Including file '${fileName}'`);
-        return new TextDecoder("utf-8").decode(file);
-      } catch (_e) {
-        pipe.warn(`Could not include file! '${fileName}'`);
+      const dataFromInclude = rowTrim.substring(2, rowTrim.length - 2);
+      const isCodeInclude = dataFromInclude.indexOf("!code!") > 0;
+      if (isCodeInclude) {
+        // this is a special reference to an included file as a code target
+        const values = dataFromInclude.split("!");
+        const fileBasePath = values[0];
+        const fileName = basePath + fileBasePath;
+        const language = values[2];
+        try {
+          const file = Deno.readFileSync(fileName);
+          pipe.info(`Including code file '${fileName}' for ${language}`);
+          const fileData = new TextDecoder("utf-8").decode(file);
+          return `<a href="${urlPathWithoutFile}${fileBasePath}" type="vim">${fileBasePath}</a>\n\`\`\`${language}\n${fileData}\n\`\`\``;
+        } catch (_e) {
+          pipe.warn(`Could not include file! '${fileName}'`);
+        }
+      } else {
+        const fileName = basePath + dataFromInclude;
+        try {
+          const file = Deno.readFileSync(fileName);
+          pipe.info(`Including file '${fileName}'`);
+          return new TextDecoder("utf-8").decode(file);
+        } catch (_e) {
+          pipe.warn(`Could not include file! '${fileName}'`);
+        }
       }
     }
     return row;

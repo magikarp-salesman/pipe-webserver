@@ -68,6 +68,10 @@ public class Order
 ```
 
 </p>
-</details>  
+</details>
+
+And here's some code I'm currently working on:
+
+{!shortcuts.vim!code!vim!}
 
 {!footer.md!}
