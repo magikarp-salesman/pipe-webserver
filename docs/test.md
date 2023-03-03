@@ -53,6 +53,8 @@ class SystemClass {
 }
 ```
 
+## Code stuff
+
 <details>
 <summary>Here's some collapsible code hidden under a summary...</summary>
 <p>
@@ -73,5 +75,14 @@ public class Order
 And here's some code I'm currently working on:
 
 {!shortcuts.vim!code!vim!}
+
+## Checkboxes
+
+- [ ] No deal
+- [x] Deal
+- [ ] Sell your soul
+- ✅ This one?
+- ☑️ Or this one?
+- 🔲 Empty...
 
 {!footer.md!}

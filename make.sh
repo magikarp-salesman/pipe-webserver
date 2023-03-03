@@ -1,9 +1,7 @@
 #!/bin/bash
 set -e
 cd docker
-export DOCKER_SCAN_SUGGEST=false
-export DOCKER_BUILDKIT=1
-docker build -t pipe-webserver/build -f Dockerfile.build ..
+deno task build-common
 
 export DOCKER_BUILDKIT=0
 docker build -t pipe-webserver/puppeteer -f Dockerfile.puppeteer ..

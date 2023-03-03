@@ -24,6 +24,11 @@ const markdownHandler = async (
 
   const requestPath = message.request.url.split("?")[0];
 
+  if (message.reply.body !== undefined && message.reply.type === "markdown") {
+    // we already have the markdown payload to convert
+    return handleShowPayload(message, pipe);
+  }
+
   // don't handle any message that is not requesting a .md file starting on the baseURL
   if (!(requestPath.startsWith(args.baseUrl) && requestPath.endsWith(".md"))) {
     return message; // forward the message
@@ -51,7 +56,7 @@ const markdownHandler = async (
     return await handleShowDirectory(message, pipe, directoryPath);
   }
 
-  return await handleShowFile(message, pipe);
+  return handleShowFile(message, pipe);
 };
 
 async function handleHeadRequest(
@@ -76,7 +81,34 @@ async function handleHeadRequest(
   }
 }
 
-async function handleShowFile(
+function handleShowPayload(
+  message: PipeServerAPICombo,
+  pipe: PipeFunctions,
+) {
+  try {
+    const path = args.localFolder;
+
+    pipe.info(`Reading raw file ${path}`);
+    const fileData = message.reply.body!;
+    const isEncryptedFile = fileData.startsWith("VimCrypt");
+    const directory = path.substring(0, path.lastIndexOf("/")) + "/";
+    message.reply.body = isEncryptedFile
+      ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
+        "\n````"
+      : postProcessIncludes(pipe, fileData, directory, args.host);
+    message.reply.type = "markdown";
+    message.reply.cacheKey = utils.md5(message.reply.body!);
+    message.reply.returnCode = 200;
+    return message;
+  } catch (_err) {
+    pipe.info("Could not read file.");
+    message.reply.body = "Not found";
+    message.reply.returnCode = 404;
+    return message;
+  }
+}
+
+function handleShowFile(
   message: PipeServerAPICombo,
   pipe: PipeFunctions,
 ) {
@@ -88,12 +120,10 @@ async function handleShowFile(
       0,
       indexOfFile + 1,
     );
-    const stat = await Deno.lstat(path);
+    const stat = Deno.lstatSync(path);
 
     pipe.info(`Reading raw file ${path}`);
-    const fileData = new TextDecoder("utf-8").decode(
-      await Deno.readFile(path),
-    );
+    const fileData = new TextDecoder("utf-8").decode(Deno.readFileSync(path));
     const isEncryptedFile = fileData.startsWith("VimCrypt");
     const directory = path.substring(0, path.lastIndexOf("/")) + "/";
     message.reply.body = isEncryptedFile
@@ -103,11 +133,13 @@ async function handleShowFile(
     message.reply.type = "markdown";
     message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
+    pipe.debug("finished");
     return message;
   } catch (_err) {
     pipe.info("Could not read file.");
     message.reply.body = "Not found";
     message.reply.returnCode = 404;
+    pipe.debug("finished");
     return message;
   }
 }

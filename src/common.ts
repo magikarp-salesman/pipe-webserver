@@ -2,6 +2,7 @@ import {
   base64,
   parse,
   PipeServerAPI,
+  PipeServerAPISkippableModules,
   PipeServerAPIv03,
   PipeServerAPIv03Cache,
   PipeWebserverModuleHelp,
@@ -12,7 +13,10 @@ import {
   utils,
 } from "./dependencies.ts";
 
-type PipeServerAPICombo = PipeServerAPIv03 & PipeServerAPIv03Cache;
+type PipeServerAPICombo =
+  & PipeServerAPIv03
+  & PipeServerAPIv03Cache
+  & PipeServerAPISkippableModules;
 
 export type PipeFunctions = {
   message: (message: PipeServerAPI) => void;
@@ -78,11 +82,13 @@ async (message: string, error?: any) => {
   await Deno.stderr.write(new TextEncoder().encode(finalMessage));
 };
 
-export async function processPipeMessages<T>(
+export async function processPipeMessages<
+  T extends PipeServerAPI | PipeServerAPISkippableModules,
+>(
   handler: (
     message: T,
     pipe: PipeFunctions,
-  ) => Promise<PipeServerAPI> | PipeServerAPI | undefined | void,
+  ) => Promise<T> | T | undefined | void,
   moduleName: string,
   startMessage = `Started handler...`,
   help?: PipeWebserverModuleHelp,
@@ -95,7 +101,6 @@ export async function processPipeMessages<T>(
     console.log(printHelp(help));
     return;
   }
-  // TODO: pass a different pipe object for each message so the logs already contain the info of which message it is processing
   pipe.debug(startMessage);
   for await (const line of readLines(Deno.stdin)) {
     let message, reply;
@@ -104,8 +109,16 @@ export async function processPipeMessages<T>(
     } catch (error) {
       pipe.error("Could not parse NDJSON", error);
       pipe.error(line);
-      return;
+      continue;
     }
+    // message casted
+    const castedMessage = message as PipeServerAPISkippableModules;
+    if (castedMessage.request.skipModules?.includes(moduleName)) {
+      pipe.debug(`... skipping module`);
+      pipe.message(message);
+      continue;
+    }
+
     try {
       reply = await handler(message, pipe);
     } catch (error) {
@@ -145,6 +158,7 @@ async function convertToInternalMessage(
       userAgent: convertToUserAgent(req.request.headers?.get("User-Agent")),
       payload: base64.encode(requestBodyBuffer),
       cacheKeyMatch: req.request.headers.get("If-None-Match") ?? undefined,
+      skipModules: req.request.headers.get("X-Skip-Modules")?.split(",") ?? [],
     },
     reply: {
       headers: {},

@@ -1,0 +1,34 @@
+{
+  "imports": {
+    "crypto": "https://deno.land/std@0.153.0/node/crypto.ts",
+
+    "base64": "https://deno.land/std@0.130.0/encoding/base64.ts",
+    "http": "https://deno.land/std@0.130.0/http/mod.ts",
+    "minifier": "https://deno.land/x/minifier@v1.1.1/mod.ts",
+    "filesystem" : "https://deno.land/std@0.128.0/fs/mod.ts",
+    "thenBy" : "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts",
+    "queue" : "https://deno.land/x/queue@1.2.0/mod.ts",
+    "urlparse": "https://deno.land/x/url_parse@1.1.0/mod.ts",
+
+    "std/": "https://deno.land/std@0.130.0/"
+  },
+  "lint": {
+    "files": {
+      "include": ["src/"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["src/"]
+    }
+  },
+  "tasks": {
+    "build-common": "cd docker ; DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build -t pipe-webserver/build -f Dockerfile.build ..",
+    "build-image": "cd docker ; DOCKER_BUILDKIT=0 docker build -t pipe-webserver/\\$1 -f Dockerfile.\\$1",
+    "build-module": "xargs -I {} deno lint src/modules/{}.ts && deno fmt --check src/modules/vim-editor.ts && deno bundle --unstable src/modules/vim-editor.ts -- build/vim-editor.bundle",
+    "build": "cd docker && deno task build-common && deno task build-image vim",
+    "dev": "docker compose -f docker-compose.dev.yaml up -d",
+    "make": "bash make.sh",
+    "bundle-all": "bash -c 'ls -1 src/modules | xargs -I {} deno bundle --unstable src/modules/{} -- build/{}.bundle'"
+  }
+}

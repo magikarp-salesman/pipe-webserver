@@ -1,10 +1,10 @@
-FROM denoland/deno:1.26.2 as runner
+FROM denoland/deno:1.31.1 as runner
 
 WORKDIR /root
 
-COPY --from=pipe-webserver/build /root/receiver.js receiver.js
-COPY --from=pipe-webserver/build /root/emitter.js emitter.js
-COPY --from=pipe-webserver/build /root/filter.js filter.js
+COPY --from=pipe-webserver/build /root/build/receiver.js receiver.js
+COPY --from=pipe-webserver/build /root/build/emitter.js emitter.js
+COPY --from=pipe-webserver/build /root/build/filter.js filter.js
 
 RUN deno install --allow-net=:8000 /root/receiver.js
 RUN deno install /root/filter.js

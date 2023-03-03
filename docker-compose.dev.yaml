@@ -8,7 +8,7 @@ services:
             - "9000:9000" # gotty port
         volumes:
             - "./docs:/root/docs"
-            - "./src:/root/src"
+            - "./:/root/project"
             - "./editor:/root/editor"
         networks:
             pipe:

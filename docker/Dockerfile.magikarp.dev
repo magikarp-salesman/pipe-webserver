@@ -1,4 +1,4 @@
-FROM denoland/deno:1.26.2 as runner
+FROM denoland/deno:1.31.1 as runner
 
 WORKDIR /root
 COPY --from=pipe-webserver/golang-builder /root/youtubedr youtubedr
@@ -25,6 +25,4 @@ ADD docker/entrypoint.dev.sh /root/
 EXPOSE 8000
 EXPOSE 9000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail"]
-# CMD [" receiver | timed-basic-auth | vim-editor | youtube-cache | markdown-to-html | blog | ssr-html-page | cache | minify-html | emitter "]
 CMD ["/root/entrypoint.dev.sh"]
-# CMD [" receiver |  | emitter "]

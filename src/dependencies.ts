@@ -10,31 +10,23 @@ export type { PipeServerAPI, PipeServerAPIv01 } from "./api/api_v0_1.ts";
 export type { PipeServerAPIv02 } from "./api/api_v0_2.ts";
 export type { PipeServerAPIv03 } from "./api/api_v0_3.ts";
 export type { PipeServerAPIv03Cache } from "./api/api_v0_3_cache.ts";
+export type { PipeServerAPISkippableModules } from "./api/api_skippable_modules.ts";
 
 // external dependencies
 
-export { serve } from "https://deno.land/std@0.130.0/http/mod.ts";
-export type {
-  ConnInfo,
-  Server,
-} from "https://deno.land/std@0.130.0/http/mod.ts";
-import {
-  decode,
-  encode,
-} from "https://deno.land/std@0.130.0/encoding/base64.ts";
-export { parse } from "https://deno.land/std@0.130.0/flags/mod.ts";
-export { ensureDirSync } from "https://deno.land/std@0.128.0/fs/mod.ts";
-export { readLines } from "https://deno.land/std@0.130.0/io/buffer.ts";
-export { minifyHTML } from "https://deno.land/x/minifier@v1.1.1/mod.ts";
-import { v4 as uuid } from "https://deno.land/std@0.130.0/uuid/mod.ts";
-export { firstBy } from "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts";
-export { urlParse } from "https://deno.land/x/url_parse@1.1.0/mod.ts";
-import {
-  readAll,
-  readerFromStreamReader,
-} from "https://deno.land/std@0.130.0/streams/conversion.ts";
-import { createHash } from "https://deno.land/std@0.130.0/hash/mod.ts";
-export { Queue } from "https://deno.land/x/queue@1.2.0/mod.ts";
+export { serve } from "http";
+export type { ConnInfo, Server } from "http";
+import { decode, encode } from "base64";
+export { ensureDirSync } from "filesystem";
+export { minifyHTML } from "minifier";
+export { firstBy } from "thenBy";
+export { urlParse } from "urlparse";
+export { Queue } from "queue";
+export { parse } from "std/flags/mod.ts";
+export { readLines } from "std/io/buffer.ts";
+import { createHash } from "std/hash/mod.ts";
+import { v4 as uuid } from "std/uuid/mod.ts";
+import { readAll, readerFromStreamReader } from "std/streams/conversion.ts";
 
 // util objects
 

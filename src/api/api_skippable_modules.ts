@@ -2,7 +2,7 @@ import { PipeServerAPI } from "./api_v0_1.ts";
 
 export interface PipeServerAPISkippableModules extends PipeServerAPI {
   request: {
-    includeModules?: Array<string>;
+    includeModules?: Array<string>; // TODO: modules skipped by default
     skipModules?: Array<string>;
   };
 }

@@ -1,12 +1,11 @@
 # syntax=docker/dockerfile:1.3
-FROM denoland/deno:1.26.2
+FROM denoland/deno:1.31.1
 
-COPY ./src /root/src
+COPY ./ /root/
 WORKDIR /root
 RUN --mount=type=cache,target=/deno-dir deno cache src/dependencies.ts
-RUN deno lint src/
-RUN deno fmt --check src/
-WORKDIR /root/src/modules
-RUN --mount=type=cache,target=/deno-dir ls -1 *.ts | xargs -I {} deno bundle --unstable {} -- /root/{}.bundle
-WORKDIR /root
+RUN deno lint
+RUN deno fmt --check
+RUN --mount=type=cache,target=/deno-dir deno task bundle-all
+WORKDIR /root/build
 RUN ls -1 *.ts.bundle | sed 'p;s/\.ts.bundle/\.js/' | xargs -n2 mv
