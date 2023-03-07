@@ -27,6 +27,7 @@ RUN deno install --allow-net=:80 /root/receiver.js --port=80
 RUN deno install /root/timed-basic-auth.js --accepted='vim:simplythebest' --realm='vim is life' --allowedForXMinutes='30'
 RUN deno install /root/vim-to-markdown.js
 RUN deno install /root/markdown-to-html.js
+RUN deno install /root/markdown-to-ppt.js
 RUN deno install /root/favicon.js
 RUN deno install /root/minify-html.js
 RUN deno install /root/cache.js
@@ -42,4 +43,4 @@ RUN deno install --allow-run /root/gotty-server.js --gottyCommand="ssh -oStrictH
 EXPOSE 8000
 EXPOSE 9000
 ENTRYPOINT [ "/bin/bash" , "-eo", "pipefail", "-c"]
-CMD [" receiver | favicon | gotty-server | markdown | vim-editor | youtube-cache | vim-to-markdown | markdown-to-html | facts | blog | ssr-html-page | cache | minify-html | emitter "]
+CMD [" receiver | favicon | gotty-server | markdown | vim-editor | vim-to-markdown | youtube-cache | vim-to-markdown | markdown-to-html | markdown-to-ppt | blog | ssr-html-page | cache | minify-html | emitter "]

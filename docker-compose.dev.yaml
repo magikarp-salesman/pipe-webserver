@@ -9,13 +9,13 @@ services:
             - ./build/nginx-cache:/var/cache/nginx
             - ./build/nginx-pid:/var/run
         extra_hosts:
-            - "application-dev:10.5.0.2"
+            - "application:10.5.0.2"
             - "puppeteer:10.5.0.10"
             - "vim:10.5.0.20"
         networks:
             pipe:
                 ipv4_address: 10.5.0.100
-    application-dev:
+    application:
         image: pipe-webserver/magikarp.dev
         restart: unless-stopped
         volumes:

@@ -8,7 +8,7 @@ deno run --allow-net /root/project/src/modules/nostr.ts | \
 deno run /root/project/src/modules/vim-to-markdown.ts | \
 deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/modules/markdown.ts --host='http://magikarp.sale'  | \
 deno run /root/project/src/modules/markdown-to-html.ts  | \
-deno run /root/project/src/modules/markdown-to-presentation.ts  | \
+deno run /root/project/src/modules/markdown-to-ppt.ts  | \
 deno run --allow-read='/root/editor/last-edit' /root/project/src/modules/web-editor.ts | \
 deno run --allow-run /root/project/src/modules/gotty-server.ts --gottyCommand=\"ssh -oStrictHostKeyChecking=no -i /root/.ssh/id_rsa 10.5.0.20 -t TERM=xterm-256color vim\" | \
 deno run --allow-read='/root/docs'  /root/project/src/modules/blog.ts  | \

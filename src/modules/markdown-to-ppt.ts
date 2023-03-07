@@ -19,7 +19,7 @@ const args = getCommandLineArgs({
 // TODO
 // - Submit the metadata feature to the revealjs guys
 
-const markdownToPresentationHandler = (
+const markdownToPptHandler = (
   message: PipeServerAPIv03 & PipeServerAPISkippableModules,
   pipe: PipeFunctions,
 ) => {
@@ -205,8 +205,8 @@ const htmlTemplate = (markdown: string, url: string) =>
 `;
 
 processPipeMessages<PipeServerAPIv03>(
-  markdownToPresentationHandler,
-  "markdown-to-presentation",
+  markdownToPptHandler,
+  "markdown-to-ppt",
 );
 
 // vim: ts=2 sts=2 sw=2 tw=0 noet
