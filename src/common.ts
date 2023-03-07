@@ -244,9 +244,17 @@ export async function receiverProcessor(
 
   // handles http requests
   const httpHandler = async (conn: Deno.Conn) => {
-    const httpConn = Deno.serveHttp(conn);
-    for await (const requestEvent of httpConn) {
-      reqHandler(requestEvent, conn);
+    try {
+      const httpConn = Deno.serveHttp(conn);
+      for await (const requestEvent of httpConn) {
+        reqHandler(requestEvent, conn);
+      }
+    } catch (e) {
+      // error loading the request, restart the server and proceed
+      pipe.error(
+        "error with the http server, restarting on the next connection...",
+        e,
+      );
     }
   };
 

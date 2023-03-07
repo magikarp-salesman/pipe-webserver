@@ -16,6 +16,7 @@ deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/
 deno run --unstable --allow-net='10.5.0.10:9222' --allow-env /root/project/src/modules/ssr-html-page.ts --host='10.5.0.10'  | \
 deno run /root/project/src/modules/minify-html.ts  | \
 deno run --allow-read='/root/docs/.youtube_cache' --allow-run /root/project/src/modules/youtube-cache.ts --targetLocation='/root/docs/.youtube_cache'  | \
+deno run /root/project/src/modules/cache.ts  | \
 deno run --allow-net=localhost:80 /root/project/src/modules/emitter.ts --port=80 --server=localhost
 "
 
