@@ -1,11 +1,23 @@
 version: "3.9"
 services:
+    lb:
+        image: pipe-webserver/nginx
+        read_only: true
+        ports:
+            - "80:80"
+        volumes:
+            - ./build/nginx-cache:/var/cache/nginx
+            - ./build/nginx-pid:/var/run
+        extra_hosts:
+            - "application-dev:10.5.0.2"
+            - "puppeteer:10.5.0.10"
+            - "vim:10.5.0.20"
+        networks:
+            pipe:
+                ipv4_address: 10.5.0.100
     application-dev:
         image: pipe-webserver/magikarp.dev
         restart: unless-stopped
-        ports: 
-            - "80:80"
-            - "9000:9000" # gotty port
         volumes:
             - "./docs:/root/docs"
             - "./:/root/project"

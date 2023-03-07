@@ -15,10 +15,9 @@ const _args = getCommandLineArgs({
 
 const nostrHandler = async (
   message: PipeServerAPIv03,
-  _pipe: PipeFunctions,
+  pipe: PipeFunctions,
 ) => {
-  // we only care about messages that already contain type=html
-  if (message.reply.type !== "html" || message.reply.body === undefined) {
+  if (!message.request.url.startsWith("/nostr")) {
     return Promise.resolve(message);
   }
 
@@ -29,57 +28,84 @@ const nostrHandler = async (
     url: "wss://relay.nostrprotocol.net",
   };
 
+  const relayList2: RelayList = {
+    name: "Damus",
+    url: "wss://relay.damus.io",
+  };
+
+  nostr.relayList.push(relayList2);
   nostr.relayList.push(relayList);
 
   nostr.on(
     "relayConnected",
-    (relay: Relay) => console.log("Relay connected.", relay.name),
+    (relay: Relay) => pipe.info("Relay connected. " + relay.name),
   );
-  nostr.on("relayError", (err: Error) => console.log("Relay error;", err));
-  nostr.on("relayNotice", (notice: string[]) => console.log("Notice", notice));
+  nostr.on("relayError", (err: Error) => pipe.error("Relay error;", err));
+  nostr.on("relayNotice", (notice: string[]) => pipe.info("Notice " + notice));
 
-  nostr.debugMode = true;
+  nostr.debugMode = false;
 
   await nostr.connect();
 
-  const filter = { kinds: [NostrKind.TEXT_NOTE], limit: 10 };
+  const filter = {
+    kinds: [NostrKind.TEXT_NOTE, NostrKind.META_DATA],
+    limit: 20,
+  };
+
+  let result = "# Nostr\n\n";
 
   //method 1: for await
-  console.log("iterable return");
+  //console.log("iterable return");
+
+  result = result.concat("## Posts\n\n");
   for await (const note of nostr.filter(filter)) {
-    console.log(note);
+    result = result.concat("> " + note.id + " - " + note.content + "\n\n");
   }
 
-  //method 2: collect
-  console.log("promise return");
-  const allNotes = await nostr.filter(filter).collect();
-  console.log(allNotes);
+  // //method 2: collect
+  // //console.log("promise return");
+  // const allNotes = await nostr.filter(filter).collect();
+  // pipe.info(JSON.stringify(allNotes));
 
-  //method 3: callback
-  console.log("callback return");
-  await nostr.filter(filter).each((note) => {
-    console.log(note);
-  });
+  // //method 3: callback
+  // //console.log("callback return");
+  // await nostr.filter(filter).each((note) => {
+  //   pipe.info(JSON.stringify(note));
+  // // });
 
-  nostr.privateKey = ""; // A private key is optional. Only used for sending posts.
-  await nostr.sendTextPost("Hello nostr deno client library.");
+  // nostr.privateKey = "nsec1z70ycr9nsz988vylz8tqvjgwv2g6tx2rf7ljmz8e33h80sdy483qmwk986"; // A private key is optional. Only used for sending posts.
+  // await nostr.sendTextPost("Hello nostr deno client library.");
 
-  nostr.publicKey = ""; // You need a public key for get posts.
+  nostr.publicKey =
+    "npub1yg8h96s2dnmjnwxc4sclvljrss0u6pvhg042ll00pfj39te58g9sp2frta"; // You need a public key for get posts.
   const posts = await nostr.getPosts();
-  console.log("Posts", posts);
+  pipe.info("Posts " + JSON.stringify(posts));
 
-  const post = posts[posts.length - 1];
-  await nostr.sendReplyPost("Test reply.", post);
+  // const post = posts[posts.length - 1];
+  // await nostr.sendReplyPost("Test reply.", post);
 
-  const profile = await nostr.getMyProfile();
-  console.log("Profile", profile);
-
+  result = result.concat("## Feeds\n\n");
   const feeds = await nostr.globalFeed({
     limit: 10,
   });
-  console.log("Feeds", feeds);
 
-  console.log(nostr.getNip19FromKey("public key"));
+  result = result.concat(
+    feeds.map((feed) => "- " + feed.id + " - " + feed.author).join("\n\n"),
+  );
+
+  result = result.concat("\n\n");
+
+  result = result.concat("## My profile\n\n");
+  const profile = await nostr.getMyProfile();
+  result = result.concat(
+    nostr.publicKey + " - " + profile.name + " - " + profile.about + " | " +
+      profile.relays + "\n\n",
+  );
+
+  // pipe.info("Key " + nostr.getNip19FromKey("public key"));
+
+  message.reply.body = result;
+  message.reply.type = "markdown";
 
   return Promise.resolve(message);
 };

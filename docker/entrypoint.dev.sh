@@ -4,6 +4,7 @@ find /root/project/src | ENTR_INOTIFY_WORKAROUND=1 entr -r sh -c "
 deno run --allow-net=:80 /root/project/src/modules/receiver.ts --port=80 | \
 deno run /root/project/src/modules/favicon.ts  | \
 deno run --allow-read='/root/docs' --allow-write='/root/docs' --allow-run /root/project/src/modules/vim-editor.ts --host='http://magikarp.sale'  | \
+deno run --allow-net /root/project/src/modules/nostr.ts | \
 deno run /root/project/src/modules/vim-to-markdown.ts | \
 deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/modules/markdown.ts --host='http://magikarp.sale'  | \
 deno run /root/project/src/modules/markdown-to-html.ts  | \
@@ -15,7 +16,6 @@ deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/
 deno run --unstable --allow-net='10.5.0.10:9222' --allow-env /root/project/src/modules/ssr-html-page.ts --host='10.5.0.10'  | \
 deno run /root/project/src/modules/minify-html.ts  | \
 deno run --allow-read='/root/docs/.youtube_cache' --allow-run /root/project/src/modules/youtube-cache.ts --targetLocation='/root/docs/.youtube_cache'  | \
-deno run /root/project/src/modules/cache.ts  | \
 deno run --allow-net=localhost:80 /root/project/src/modules/emitter.ts --port=80 --server=localhost
 "
 

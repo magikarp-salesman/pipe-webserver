@@ -10,7 +10,17 @@ const args = getCommandLineArgs({
   executable: "gotty",
   gottyAddress: "0.0.0.0",
   gottyPort: 9000,
-  gottyOptions: ["--permit-write", "--address", "0.0.0.0", "--port", "9000"],
+  gottyOptions: [
+    "--permit-write",
+    "--address",
+    "0.0.0.0",
+    "--port",
+    "9000",
+    "--ws-origin",
+    ".*",
+    "--path",
+    "/vim",
+  ],
   gottyCommand: "sh",
 });
 
@@ -57,7 +67,7 @@ function sleep(ms) {
 
 async function redirect() {
     await sleep(${redirectDelay});
-    const redirect = window.location.protocol + "//" + window.location.hostname + ":${args.gottyPort}" + "/";
+    const redirect = window.location.protocol + "//" + window.location.hostname + "/vim/";
     window.location.replace(redirect);    
 }
 

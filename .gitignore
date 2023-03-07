@@ -6,4 +6,5 @@ my_docs
 .youtube_cache
 id_rsa
 id_rsa.pub
-.build
+build
+editor
