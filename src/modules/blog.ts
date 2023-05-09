@@ -24,8 +24,10 @@ const blogHandler = async (
 
   try {
     if (message.request.url.startsWith(args.baseUrl)) {
+      const withoutQuery = message.request.url.split("?")[0];
+
       const path = args.localFolder +
-        message.request.url.substring(args.baseUrl.length);
+        withoutQuery.substring(args.baseUrl.length);
 
       pipe.debug(`Reading file ${path}`);
 

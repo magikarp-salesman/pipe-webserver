@@ -1,4 +1,5 @@
 import {
+  FileInfoMapped,
   getCommandLineArgs,
   PipeFunctions,
   PipeServerAPIv03,
@@ -26,7 +27,12 @@ const markdownHandler = async (
 
   if (message.reply.body !== undefined && message.reply.type === "markdown") {
     // we already have the markdown payload to convert
-    return handleShowPayload(message, pipe);
+    const info = await utils.urlMapped(
+      args.baseUrl + "/",
+      args.localFolder + "/",
+      message.request.fullUrl,
+    );
+    return handleShowPayload(message, info, pipe);
   }
 
   // don't handle any message that is not requesting a .md file starting on the baseURL
@@ -83,29 +89,33 @@ async function handleHeadRequest(
 
 function handleShowPayload(
   message: PipeServerAPICombo,
+  info: FileInfoMapped,
   pipe: PipeFunctions,
 ) {
-  try {
-    const path = args.localFolder;
+  pipe.info(`Reading from payload...`);
+  const fileData = message.reply.body!;
 
-    pipe.info(`Reading raw file ${path}`);
-    const fileData = message.reply.body!;
-    const isEncryptedFile = fileData.startsWith("VimCrypt");
-    const directory = path.substring(0, path.lastIndexOf("/")) + "/";
-    message.reply.body = isEncryptedFile
-      ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
-        "\n````"
-      : postProcessIncludes(pipe, fileData, directory, args.host);
-    message.reply.type = "markdown";
-    message.reply.cacheKey = utils.md5(message.reply.body!);
-    message.reply.returnCode = 200;
-    return message;
-  } catch (_err) {
-    pipe.info("Could not read file.");
-    message.reply.body = "Not found";
-    message.reply.returnCode = 404;
-    return message;
-  }
+  // improve this to run X times until we have no more references
+  // instead of running twice
+
+  const isEncryptedFile = fileData.startsWith("VimCrypt");
+  message.reply.body = isEncryptedFile
+    ? ":closed_lock_with_key: __Encrypted file__\n````\n" + fileData +
+      "\n````"
+    : postProcessIncludes(
+      pipe,
+      postProcessIncludes(
+        pipe,
+        fileData,
+        info.local_directory,
+        info.full_url_without_file,
+      ),
+      info.local_directory,
+      info.full_url_without_file,
+    );
+  message.reply.cacheKey = utils.md5(message.reply.body!);
+  message.reply.returnCode = 200;
+  return message;
 }
 
 function handleShowFile(
@@ -133,13 +143,11 @@ function handleShowFile(
     message.reply.type = "markdown";
     message.reply.cacheKey = stat.mtime?.toString() || "";
     message.reply.returnCode = 200;
-    pipe.debug("finished");
     return message;
   } catch (_err) {
     pipe.info("Could not read file.");
     message.reply.body = "Not found";
     message.reply.returnCode = 404;
-    pipe.debug("finished");
     return message;
   }
 }
@@ -164,16 +172,7 @@ async function handleShowDirectory(
   }
   const stat = await Deno.lstat(path);
 
-  const includesFiles = includes.sort().map((file) => `{!./${file}!}`).join(
-    "\n" + "\n",
-  );
-  const fileList = toc.sort().map((line) => `> ${line}`).join("\n");
-
-  const markdownResult = `
-  ${includesFiles}
-  - - -
-  ${fileList}
-  `;
+  const markdownResult = toc.sort().map((line) => `> ${line}`).join("\n");
 
   message.reply.cacheKey = stat.mtime?.toString() || "";
   message.reply.body = postProcessIncludes(
@@ -192,7 +191,7 @@ function postProcessIncludes(
   markdown: string,
   basePath: string,
   urlPathWithoutFile: string,
-) {
+): string {
   return utils.perLine(markdown).map((row) => {
     const rowTrim = row.trim().toLowerCase();
     if (rowTrim.startsWith("{!") && rowTrim.endsWith("!}")) {
@@ -217,7 +216,11 @@ function postProcessIncludes(
         try {
           const file = Deno.readFileSync(fileName);
           pipe.info(`Including file '${fileName}'`);
-          return new TextDecoder("utf-8").decode(file);
+          const data = new TextDecoder("utf-8").decode(file);
+          // remove metadata
+          const filtered = data.replace(/(^---)([\S\s]*?)(^---)/m, "");
+
+          return filtered;
         } catch (_e) {
           pipe.warn(`Could not include file! '${fileName}'`);
         }

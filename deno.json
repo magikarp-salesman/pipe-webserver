@@ -9,7 +9,6 @@
     "thenBy": "https://raw.githubusercontent.com/magikarp-salesman/thenBy.js/master/thenBy.deno.ts",
     "queue": "https://deno.land/x/queue@1.2.0/mod.ts",
     "urlparse": "https://deno.land/x/url_parse@1.1.0/mod.ts",
-
     "std/": "https://deno.land/std@0.130.0/"
   },
   "lint": {
@@ -23,7 +22,8 @@
     }
   },
   "tasks": {
-    "build": "deno task build-common && deno task build-all-dockers",
+    "clean": "rm -f deno.lock",
+    "build": "deno task clean && deno task build-common && deno task build-all-dockers",
     "build-all": "deno task build && deno task build-examples",
     "prod": "docker compose -f docker-compose.yaml up -d",
     "dev": "docker compose -f docker-compose.dev.yaml up -d",

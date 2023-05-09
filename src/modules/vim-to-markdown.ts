@@ -1,10 +1,17 @@
 import {
+  getCommandLineArgs,
   PipeFunctions,
   PipeServerAPIv03,
   processPipeMessages,
+  utils,
 } from "../dependencies.ts";
 
-const vimToMarkdownHandler = (
+const args = getCommandLineArgs({
+  basePath: "/docs/",
+  baseFolder: "./docs/",
+});
+
+const vimToMarkdownHandler = async (
   message: PipeServerAPIv03,
   pipe: PipeFunctions,
 ) => {
@@ -22,11 +29,22 @@ const vimToMarkdownHandler = (
 
   pipe.debug("Converting vim file to markdown");
 
+  const info = await utils.urlMapped(
+    args.basePath,
+    args.baseFolder,
+    message.request.fullUrl,
+  );
+
+  if (!info.exists) {
+    // file does not exist so no need to convert
+    return message;
+  }
+
   message.reply.body = `
 ---
 title: ${message.request.url}
 ---
-  {!${message.request.url}!code!vim!}`;
+  {!${info.filename}!code!vim!}`;
   message.reply.type = "markdown";
 
   return message;

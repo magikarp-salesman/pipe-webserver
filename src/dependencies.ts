@@ -108,6 +108,63 @@ class PerLine {
   toString = (): string => this.input;
 }
 
+export type FileInfoMapped = {
+  full_url: string;
+  full_url_without_file: string;
+  partial_url: string;
+  query: string;
+  filename: string;
+  exists: boolean;
+  starts_in_base_path: boolean;
+  local_path: string;
+  local_directory: string;
+};
+
+async function urlMapped(
+  basePath: string,
+  baseFolder: string,
+  fullUrl: string,
+): Promise<FileInfoMapped> {
+  const fullUrlWithoutQuery = fullUrl.split("?")[0];
+  const query = fullUrl.indexOf("?") <= 0
+    ? ""
+    : fullUrl.slice(fullUrl.indexOf("?") + 1);
+
+  const positionLastSlash = fullUrlWithoutQuery.lastIndexOf("/") + 1;
+  const filename = fullUrlWithoutQuery.slice(positionLastSlash);
+  const fullUrlWithoutFile = fullUrlWithoutQuery.slice(
+    0,
+    fullUrlWithoutQuery.length - filename.length,
+  );
+  const firstSlash = fullUrl.indexOf(
+    "/",
+    fullUrlWithoutQuery.indexOf("//") + 2,
+  );
+  const partialUrl = fullUrlWithoutQuery.slice(firstSlash);
+
+  const startsInBasePath = partialUrl.startsWith(basePath);
+  const local_path = startsInBasePath
+    ? baseFolder + partialUrl.slice(basePath.length)
+    : "";
+  const local_directory = startsInBasePath
+    ? local_path.slice(0, local_path.length - filename.length)
+    : "";
+
+  const existsFlag = await exists(local_path);
+
+  return {
+    full_url: fullUrlWithoutQuery,
+    full_url_without_file: fullUrlWithoutFile,
+    partial_url: partialUrl,
+    query: query,
+    filename: filename,
+    exists: existsFlag,
+    starts_in_base_path: startsInBasePath,
+    local_path: local_path,
+    local_directory: local_directory,
+  };
+}
+
 export const utils = {
   uuid,
   md5: (value: string) => {
@@ -133,6 +190,7 @@ export const utils = {
   Uint8ArrayToString: async (array: Promise<Uint8Array>): Promise<string> =>
     new TextDecoder("utf-8").decode(await array),
   perLine,
+  urlMapped,
 };
 
 export const exists = async (filename: string): Promise<boolean> => {
@@ -144,8 +202,11 @@ export const exists = async (filename: string): Promise<boolean> => {
     if (error instanceof Deno.errors.NotFound) {
       // file or directory does not exist
       return false;
+    } else if (error instanceof Deno.errors.PermissionDenied) {
+      // this module has no access to that specific file/folder
+      return false;
     } else {
-      // unexpected error, maybe permissions, pass it along
+      // unexpected error, pass it along
       throw error;
     }
   }

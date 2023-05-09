@@ -85,4 +85,14 @@ And here's some code I'm currently working on:
 - ☑️ Or this one?
 - 🔲 Empty...
 
+## Forms?
+
+<form method="post">
+        <label>Name here:</label>
+        <input type="text" id="textbox" name="textbox"><br>
+        <label>Phone here:</label>
+        <input type="text" id="phone" name="phone"/><br>
+        <input type="submit" value="Submit">
+</form>
+
 {!footer.md!}

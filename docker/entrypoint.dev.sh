@@ -3,10 +3,12 @@
 find /root/project/src | ENTR_INOTIFY_WORKAROUND=1 entr -r sh -c "
 deno run --allow-net=:80 /root/project/src/modules/receiver.ts --port=80 | \
 deno run /root/project/src/modules/favicon.ts  | \
+deno run /root/project/src/modules/redirect.ts | \
 deno run --allow-read='/root/docs' --allow-write='/root/docs' --allow-run /root/project/src/modules/vim-editor.ts --host='http://magikarp.sale'  | \
 deno run --allow-net /root/project/src/modules/nostr.ts | \
-deno run /root/project/src/modules/vim-to-markdown.ts | \
-deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/modules/markdown.ts --host='http://magikarp.sale'  | \
+deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/modules/book.ts | \
+deno run --allow-read='/root/docs' /root/project/src/modules/vim-to-markdown.ts | \
+deno run --allow-read='/root/docs' --allow-write='/root/docs' /root/project/src/modules/markdown.ts --host='http://magikarp.sale' | \
 deno run /root/project/src/modules/markdown-to-html.ts  | \
 deno run /root/project/src/modules/markdown-to-ppt.ts  | \
 deno run --allow-read='/root/editor/last-edit' /root/project/src/modules/web-editor.ts | \

@@ -112,67 +112,61 @@ window.addEventListener('load', () => {
 </script>
 `;
 
-const vimSvgIcon2KB =
-  '<svg id="vim-svg" class="svg-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M24 11.986h-.027l-4.318-4.318 4.303-4.414V1.461l-.649-.648h-8.198l-.66.605v1.045L12.015.027V0L12 .014 11.986 0v.027l-1.29 1.291-.538-.539H2.035l-.638.692v1.885l.616.616h.72v5.31L.027 11.987H0L.014 12 0 12.014h.027l2.706 2.706v6.467l.907.523h2.322l1.857-1.904 4.166 4.166V24l.015-.014.014.014v-.028l2.51-2.509h.485c.111 0 .211-.07.25-.179l.146-.426a.262.262 0 00-.037-.239l1.462-1.462-.612 1.962a.265.265 0 00.255.344h1.824a.266.266 0 00.243-.163l.165-.394a.27.27 0 00-.247-.365h-.075l.84-2.644h1.232l-1.016 3.221a.266.266 0 00.255.344h2.002c.11 0 .207-.066.248-.17l.164-.428a.266.266 0 00-.249-.358h-.145l1.131-3.673a.263.263 0 00-.039-.24l-.375-.504-.003-.005a.267.267 0 00-.209-.102h-1.436a.266.266 0 00-.19.081l-.4.439h-.624l-.042-.046 4.445-4.445H24L23.986 12l.014-.014zM9.838 21.139l1.579-4.509h-.501l.297-.304h1.659l-1.563 4.555h.623l-.079.258H9.838zm3.695-7.516l.15.151-.269.922-.225.226h-.969l-.181-.181.311-.871.288-.247h.895zM5.59 20.829H3.877l-.262-.15V3.091H2.379l-.1-.1V1.815l.143-.154h7.371l.213.214v1.108l-.142.173H8.785v8.688l8.807-8.688h-2.086l-.175-.188V1.805l.121-.111h7.49l.132.133v1.07L12.979 13.25h-.373c-.015-.001-.028 0-.042.001l-.02.003a.259.259 0 00-.119.06l-.343.295-.004.003a.273.273 0 00-.073.111l-.296.83-6.119 6.276zm14.768-3.952l.474-.519h1.334l.309.415-1.265 4.107h.493l-.08.209H19.84l1.124-3.564h-2.015l-1.077 3.391h.424l-.073.174h-1.605l1.107-3.548h-2.096l-1.062 3.339h.436l-.072.209H13.27l1.514-4.46h-.586l.091-.271h1.65l.519.537h.906l.491-.554h1.061l.489.535h.953z"/></svg>';
-
 const changeHtmlLinksToVim = `
-${vimSvgIcon2KB}
-<script>
-  // changes all anchors marked with "vim" to vim links
-  window.addEventListener('load', () => {
-    let allLinks = document.getElementsByTagName("A");
-    let properArray = [];
-    for(let i=0;i<allLinks.length;i++){
-      properArray.push(allLinks.item(i));
-    }
-
-    properArray.forEach(element => {
-      if(element.type === "vim"){
-        
-        const textNode = document.createTextNode("\u00A0"); // &nbsp;
-        const newElement = element.cloneNode(true);
-        const svgElement = document.getElementById("vim-svg").cloneNode(true);
-
-        const href = element.href.replace("http://","vim://").replace("https://","vims://");
-        newElement.href = href;
-        newElement.setAttribute("class", "svg-icon-vim");
-        newElement.removeAttribute("type");
-        delete newElement.type;
-
-        newElement.appendChild(textNode);
-        newElement.appendChild(svgElement);
-        newElement.setAttribute("title", "edit file in vIM");
-
-        const parent = element.parentElement;
-        element.parentElement.replaceChild(newElement, element);
-
-        const newParentClassElements = (parent.getAttribute("class") || "") + " no-bottom-margin";
-        parent.setAttribute("class", newParentClassElements.trim());
+  <script>
+    // changes all anchors marked with "vim" to vim links
+    window.addEventListener('load', () => {
+      let allLinks = document.getElementsByTagName("A");
+      let properArray = [];
+      for(let i=0;i<allLinks.length;i++){
+        properArray.push(allLinks.item(i));
       }
+  
+      properArray.forEach(element => {
+        if(element.type === "vim"){
+          
+          const textNode = document.createTextNode("\u00A0"); // &nbsp;
+          const newElement = element.cloneNode(true);
+          
+          const href = element.href.replace("http://","vim://").replace("https://","vims://");
+          newElement.href = href;
+          newElement.setAttribute("class", "svg-icon-anchor");
+          newElement.removeAttribute("type");
+          delete newElement.type;
+  
+          const span = document.createElement('span');
+          span.setAttribute("class", "svg-icon");
+  
+          newElement.appendChild(textNode);
+          newElement.appendChild(span);
+          newElement.setAttribute("title", "edit file in vIM");
+  
+          const parent = element.parentElement;
+          element.parentElement.replaceChild(newElement, element);
+  
+          const newParentClassElements = (parent.getAttribute("class") || "") + " no-bottom-margin";
+          parent.setAttribute("class", newParentClassElements.trim());
+        }
+      });
+  
+      document.getElementById("vim-svg").remove();
     });
-
-    document.getElementById("vim-svg").remove();
-  });
-</script>
-`;
+  </script>
+  `;
 
 const baseCss = /* css */ `
-  .svg-icon {
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    fill: #41903F;
-  }
-  .svg-icon-vim svg {
-    width: 20px;
-    height: 20px;
-    top: auto;
-    left: auto;
-    display: inline-block;
-  }
+a.svg-icon-anchor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.svg-icon {
+  background: transparent url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3 NjAiIGhlaWdodD0iNzUwIiBmaWxsPSJub25lIiB4bWxuczp2PSJodHRwczovL3Zl Y3RhLmlvL25hbm8iPjxwYXRoIGQ9Ik02NiA2NmwxMi0yM2gyMzFsMTQ2IDUzIDIy LTUzIDI1Mi01IDE2IDUwLTEzMiAxNDB2Mjg5bDMwIDcgMTUtMjBoNDRsMTUgMjAt MzcgMTE5IDEzIDctNiAxNmgtNjVsMzAtMTEyaC00OGwtMzEgODkgOSA3djE2aC02 MWwyMC03My00NCA2LTIwIDY3LTE1OCA3LTc1LTYzLTUwIDQ4aC04M2wtMTAtNTMy LTM1LTI0VjY2eiIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik03NjAgMzc0LjU2Mmgt Ljg1NUw2MjIuNDA4IDIzOS42MjUgNzU4LjY3IDEwMS42ODhWNDUuNjU2bC0yMC41 NTItMjAuMjVINDc4LjUxNWwtMjAuOSAxOC45MDZ2MzIuNjU2TDM4MC40NzUuODQ0 VjBMMzgwIC40MzggMzc5LjU1NyAwdi44NDRsLTQwLjg1IDQwLjM0NC0xNy4wMzct MTYuODQ0SDY0LjQ0Mkw0NC4yMzggNDUuOTY5djU4LjkwNmwxOS41MDcgMTkuMjVo MjIuOHYxNjUuOTM3TC44NTUgMzc0LjU5NEgwbC40NDMuNDA2LS40NDMuNDM4aC44 NTVMODYuNTQ1IDQ2MHYyMDIuMDk0bDI4LjcyMiAxNi4zNDRoNzMuNTNsNTguODA1 LTU5LjUgMTMxLjkyMyAxMzAuMTg3Vjc1MGwuNDc1LS40MzguNDQzLjQzOHYtLjg3 NWw3OS40ODQtNzguNDA2aDE1LjM1OGMzLjUxNSAwIDYuNjgyLTIuMTg4IDcuOTE3 LTUuNTk0bDQuNjIzLTEzLjMxM2E4LjExIDguMTEgMCAwIDAtMS4xNzItNy40Njhs NDYuMjk3LTQ1LjY4OC0xOS4zOCA2MS4zMTNjLTEuMzYyIDQuNDA2IDEuMTQgOS4w MzEgNS42MDUgMTAuMzc1YTguMzEgOC4zMSAwIDAgMCAyLjQ3LjM3NWg1Ny43NmMz LjM1Ny0uMDMxIDYuMzY1LTIgNy42OTUtNS4wOTRsNS4yMjUtMTIuMzEzYy43OTIt Mi4wMzEuNzYtNC4zMTItLjEyNy02LjM0My0uODU1LTIuMDMxLTIuNTMzLTMuNjI1 LTQuNjIzLTQuNDM4LS45MTgtLjM3NS0xLjk2My0uNTkzLTMuMDcyLS42MjVoLTIu Mzc1bDI2LjYtODIuNjI1aDM5LjAxNGwtMzIuMTc0IDEwMC42NTdjLTEuMzYxIDQu NDA2IDEuMTQgOS4wMzEgNS41NzQgMTAuMzc0Ljc5MS4yNSAxLjY0Ni4zNzYgMi41 MDEuMzc2aDYzLjM5N2MzLjQ4MyAwIDYuNTU1LTIuMDYzIDcuODUzLTUuMzEzTDcw MC4wODcgNjUyYzEuNjE1LTQuMzEyLS42NjUtOS4wNjItNS4wMDQtMTAuNjU2LS45 MTgtLjM0NC0xLjktLjUzMi0yLjg4MS0uNTMyaC00LjU5MmwzNS44MTUtMTE0Ljc4 MWMuODU1LTIuNTYyLjM4LTUuNDA2LTEuMjM1LTcuNWwtMTEuODc1LTE1Ljc1LS4w OTUtLjE1NmMtMS42MTUtMi00LjAyMi0zLjE4Ny02LjYxOC0zLjE4N2gtNDUuNDc0 YTguNDkgOC40OSAwIDAgMC02LjAxNiAyLjUzMWwtMTIuNjY3IDEzLjcxOWgtMTku NzZsLTEuMzMtMS40MzggMTQwLjc1OC0xMzguOTA2SDc2MGwtLjQ0My0uMzQ0LjQ0 My0uNDM4ek0zMTEuNTM3IDY2MC41OTRsNTAuMDAxLTE0MC45MDZoLTE1Ljg2NWw5 LjQwNS05LjVoNTIuNTM1bC00OS40OTUgMTQyLjM0M2gxOS43MjlsLTIuNTAyIDgu MDYzaC02My44MDh6bTExNy4wMDgtMjM0Ljg3NWw0Ljc1IDQuNzE5LTguNTE4IDI4 LjgxMi03LjEyNSA3LjA2MmgtMzAuNjg1bC01LjczMi01LjY1NiA5Ljg0OC0yNy4y MTggOS4xMi03LjcxOWgyOC4zNDJ6TTE3Ny4wMTcgNjUwLjkwNmgtNTQuMjQ1bC04 LjI5Ny00LjY4N1Y5Ni41OTRoLTM5LjE0bC0zLjE2Ny0zLjEyNXYtMzYuNzVsNC41 MjgtNC44MTNoMjMzLjQxNWw2Ljc0NSA2LjY4OHYzNC42MjVsLTQuNDk3IDUuNDA2 aC0zNC4xNjh2MjcxLjVsMjc4Ljg4OC0yNzEuNWgtNjYuMDU3bC01LjU0MS01Ljg3 NVY1Ni40MDZsMy44MzEtMy40NjloMjM3LjE4NGw0LjE4IDQuMTU2djMzLjQzN0w0 MTEuMDAyIDQxNC4wNjJIMzk5LjE5Yy0uNDc1LS4wMzEtLjg4NyAwLTEuMzMuMDMy bC0uNjMzLjA5NGMtMS40MjUuMzEyLTIuNzI0LjkzNy0zLjc2OSAxLjg3NGwtMTAu ODYxIDkuMjE5LS4xMjcuMDk0Yy0xLjA0NS45NjktMS44NjggMi4xNTYtMi4zMTIg My40NjlsLTkuMzczIDI1LjkzNy0xOTMuNzY4IDE5Ni4xMjV6bTQ2Ny42NTMtMTIz LjVsMTUuMDEtMTYuMjE4aDQyLjI0M2w5Ljc4NSAxMi45NjhMNjcxLjY1IDY1Mi41 aDE1LjYxMmwtMi41MzQgNi41MzFoLTU2LjQ2MWwzNS41OTMtMTExLjM3NWgtNjMu ODA4bC0zNC4xMDUgMTA1Ljk2OWgxMy40MjZsLTIuMzExIDUuNDM3aC01MC44MjVs MzUuMDU1LTExMC44NzRoLTY2LjM3NGwtMzMuNjMgMTA0LjM0M2gxMy44MDdsLTIu MjggNi41MzFoLTUyLjU5OGw0Ny45NDMtMTM5LjM3NGgtMTguNTU3bDIuODgyLTgu NDY5aDUyLjI1TDUyMS4xNyA1MjhoMjguNjlsMTUuNTQ4LTE3LjMxM2gzMy41OTls MTUuNDg1IDE2LjcxOWgzMC4xNzh6IiBmaWxsPSIjMTA3MTAwIi8+PC9zdmc+') no-repeat center center;
+  background-size: cover;
+  height: 20px;
+  width: 20px;
+}
 `;
 
 const htmlTemplate = (markdown: string, url: string) =>

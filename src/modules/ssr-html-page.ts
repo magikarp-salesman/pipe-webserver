@@ -52,14 +52,39 @@ const ssrHtmlPageHandler = async (
   pipe.info("Removing scripts.");
   await page.evaluate(`
       var scripts = document.getElementsByTagName('script');
-      var scriptsArray = [];
+      var scriptsArrayToDelete = [];
+      var scriptsToInline = [];
       for (let script of scripts){
         // skip scripts that cannot be inline
-        if(script.dataset.noinline == 'true') continue;
-        scriptsArray.push(script);
+        if(script.dataset.inline == 'true'){
+          scriptsToInline.push(script);
+        } else {
+          scriptsArrayToDelete.push(script);
+        }
       }
 
-      scriptsArray.forEach(s => s.parentNode.removeChild(s));
+      scriptsArrayToDelete.forEach(s => s.parentNode.removeChild(s));
+      scriptsToInline.forEach(s => {
+        fetch(s.src).then(data => data.text()).then(data => {
+          const newElement = document.createElement('script');
+          newElement.innerHTML = data;
+          s.parentElement.replaceChild(newElement,s);
+          console.log("done.");
+        });
+      });
+    `);
+
+  pipe.info("Removing iframes");
+  await page.evaluate(`
+      var iframes = document.getElementsByTagName('iframe');
+      var iframesArray = [];
+      for (let iframe of iframes){
+        // skip iframes that cannot be removed
+        if(iframe.dataset.noremove == 'true') continue;
+        iframesArray.push(iframe);
+      }
+  
+      iframesArray.forEach(s => s.parentNode.removeChild(s));
     `);
 
   pipe.info("Inlining stylesheets");
@@ -100,6 +125,35 @@ const ssrHtmlPageHandler = async (
       style.parentElement.removeChild(style);
     }
   `);
+
+  if (message.reply.headers["X-SSR-Options"].includes("redirect-links")) {
+    pipe.info("Changing the links to apply the redirection");
+    const originalUrl = message.reply.headers["X-SSR-Original-Url"];
+    await page.evaluate(`
+      const alinks = document.getElementsByTagName("A");
+      let failCount = 0;
+      [... alinks].forEach((element) => {
+        const originalLink = unescape("${originalUrl}");
+        const httpLink = element.href.startsWith("http");
+        const redirectLink = element.href.includes("/redirect?url=");
+        const startsWithJavascript = element.href.startsWith("javascript");
+        
+        if(httpLink && !redirectLink){
+          element.href = "/redirect?url=" + escape(element.href);
+        } else if(!httpLink && !redirectLink && !startsWithJavascript) {
+          element.href = "/redirect?url=" + escape(originalLink + element.href);
+        } else {
+          console.log(element.href);
+          failCount++;
+        }
+      });
+
+      console.warn("Links not adapted: " + failCount);
+  `);
+    // remove uneeded headers
+    message.reply.headers["X-SSR-Options"] = undefined;
+    message.reply.headers["X-SSR-Original-Url"] = undefined;
+  }
 
   const renderedSource = await page.evaluate(
     "document.getElementsByTagName('html')[0].innerHTML",
